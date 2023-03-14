@@ -4,7 +4,7 @@
 
 <Head />
 
-<div class="container pt-12">
+<div class="container pt-6">
 	<h1 class="text-2xl font-semibold">Hello, I'm John!</h1>
 	<p class="mt-6">
 		I'm a fullstack developer from Sweden, where I am currently working at Telia, specificly with

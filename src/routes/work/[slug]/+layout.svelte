@@ -6,6 +6,6 @@
 
 <Head title={data.title} description={data.description} />
 
-<article class="container pt-12">
+<article class="container pt-6">
 	<slot />
 </article>

@@ -1,5 +1,5 @@
 ---
-title: 'One Design System'
+title: 'One Design System, Telia'
 description: 'The one design system library'
 date: '2022-09-01'
 ---

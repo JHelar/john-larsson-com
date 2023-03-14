@@ -3,5 +3,5 @@
 @tailwind utilities;
 
 a {
-	@apply text-red-500 font-semibold hover:underline;
+	@apply text-red-500 font-semibold hover:underline focus-visible:underline focus-visible:outline-none;
 }
