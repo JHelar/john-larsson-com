@@ -1,6 +1,6 @@
 ---
 title: 'One Design System'
-description: 'The one design system'
+description: 'The one design system library'
 date: '2022-09-01'
 ---
 
@@ -8,6 +8,17 @@ date: '2022-09-01'
 
 **Out of the many projects that I worked on in Telia, the design system library is the one that I am the most proud of.**
 
-<small>A case study on the importance of good teamwork · {date}</small>
+<small>A case study on the power of good teamwork · {date}</small>
 
-⚠️ Article work in progress ⚠️
+## My role
+
+One of the developers in a team of two, working solemly on the integration between Figma and the client streaming platforms:
+
+- Web
+- Android
+- iOS
+- SamsungTV
+
+## Finding the problemspace
+
+⚠️ To be continued ⚠️

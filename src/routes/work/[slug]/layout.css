@@ -2,6 +2,18 @@ article > * + * {
 	@apply mt-4 block;
 }
 
+article > * + h2 {
+	@apply mt-6 block;
+}
+
 h1 {
 	@apply text-4xl font-semibold;
+}
+
+h2 {
+	@apply text-xl font-semibold;
+}
+
+ul {
+	@apply list-inside list-square;
 }

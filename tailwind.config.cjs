@@ -3,7 +3,9 @@ module.exports = {
 	content: ['./src/**/*.{html,js,ts,svelte}'],
 	theme: {
 		listStyleType: {
-			decimal: 'decimal-leading-zero'
+			decimal: 'decimal-leading-zero',
+			disc: 'disc',
+			square: 'square'
 		},
 		container: {
 			center: true,
@@ -11,7 +13,7 @@ module.exports = {
 				DEFAULT: '2rem'
 			},
 			screens: {
-				DEFAULT: '800px'
+				DEFAULT: '680px'
 			}
 		},
 		extend: {}
