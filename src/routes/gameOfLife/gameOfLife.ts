@@ -16,6 +16,8 @@ type Cell = {
 const grid: Cell[][] = [];
 let prevTime = 0;
 let run = false;
+let speed = 1;
+const MIN_SPEED = 0.8;
 
 const CELL_COUNT = 100;
 
@@ -77,37 +79,31 @@ function updateCellState(cell: Cell, grid: Cell[][]): CellState {
 
 function renderCell({ cx: x, cy: y, state }: Cell, context: CanvasRenderingContext2D) {
 	const cellSize = Math.round(context.canvas.width / (CELL_COUNT / 2));
-	if (!run) {
-		context.globalAlpha = 0.3;
-		context.fillStyle = '#CEAC5C';
-		context.strokeRect(x, y, cellSize, cellSize);
-	}
 
 	switch (state) {
 		case CellState.Alive:
 			context.globalAlpha = 1;
-			context.strokeStyle = '#034F1B';
+			context.fillStyle = '#CEAC5C';
 			context.fillRect(x, y, cellSize, cellSize);
 			break;
-		default:
+		case CellState.Dead:
+			if (!run) {
+				context.globalAlpha = 0.5;
+				context.strokeStyle = '#034F1B';
+				context.strokeRect(x, y, cellSize, cellSize);
+			}
 			break;
 	}
 }
 
 function startLoop(context: CanvasRenderingContext2D) {
-	function runUpdates(delta: number) {
-		if (run) {
+	function runLoop(timeframe: number) {
+		const delta = (timeframe - prevTime) / 1000;
+		if (run && delta >= speed) {
+			prevTime = timeframe;
 			cycle(delta, context);
 		}
 		render(delta, context);
-	}
-
-	function runLoop(timeframe: number) {
-		const delta = (timeframe - prevTime) / 1000;
-		if (delta >= 0.2) {
-			prevTime = timeframe;
-			runUpdates(delta);
-		}
 		requestAnimationFrame(runLoop);
 	}
 
@@ -134,28 +130,31 @@ function render(delta: number, context: CanvasRenderingContext2D) {
 	grid.forEach((row) => row.forEach((cell) => renderCell(cell, context)));
 }
 
-function addCell(e: MouseEvent) {
-	const canvas = e.target as HTMLCanvasElement;
-	const rect = canvas.getBoundingClientRect();
-	const offsetX = e.clientX - rect.left;
-	const offsetY = e.clientY - rect.top;
+function createAddCell(context: CanvasRenderingContext2D) {
+	return function addCell(e: MouseEvent) {
+		const canvas = e.target as HTMLCanvasElement;
+		const rect = canvas.getBoundingClientRect();
+		const offsetX = e.clientX - rect.left;
+		const offsetY = e.clientY - rect.top;
 
-	const cellSize = Math.round(rect.width / (CELL_COUNT / 2));
-	const x = Math.floor(offsetX / cellSize);
-	const y = Math.floor(offsetY / cellSize);
-	console.log(x, y);
-	grid[y][x].state = grid[y][x].state === CellState.Alive ? CellState.Dead : CellState.Alive;
+		const cellSize = Math.round(rect.width / (CELL_COUNT / 2));
+		const x = Math.floor(offsetX / cellSize);
+		const y = Math.floor(offsetY / cellSize);
+
+		grid[y][x].state = grid[y][x].state === CellState.Alive ? CellState.Dead : CellState.Alive;
+		render(0, context);
+	};
 }
 
 export function initialize(canvas: HTMLCanvasElement) {
 	const context = canvas.getContext('2d');
-	canvas.addEventListener('click', addCell);
-
 	canvas.height = canvas.width;
 
 	if (!context) {
 		throw new Error('Unable to create context from node.');
 	}
+
+	canvas.addEventListener('click', createAddCell(context));
 
 	let x = 0;
 	let y = 0;
@@ -180,3 +179,10 @@ export function initialize(canvas: HTMLCanvasElement) {
 
 export const runStore = writable(run);
 runStore.subscribe((value) => (run = value));
+
+export const speedStore = writable(50);
+speedStore.subscribe((value) => (speed = ((100 - value - 0) * (MIN_SPEED - 0)) / (100 - 0) + 0));
+
+export function clear() {
+	grid.forEach((row) => row.forEach((cell) => (cell.state = CellState.Dead)));
+}
