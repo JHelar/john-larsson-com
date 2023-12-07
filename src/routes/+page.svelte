@@ -9,7 +9,7 @@
 	<p class="mt-6">
 		I'm a fullstack developer from Sweden, where I am currently working at Telia, specificly with
 		their VOD/SVOD content aggregator product <a href="https://teliaplay.se">Teliaplay</a> and
-		<a href="https://cmore.se">C More</a>
+		<a href="https://cmore.se">C More</a>.
 	</p>
 	<p class="mt-6">
 		Today, I'm currently working as a senior web and systems developer. Before that I worked as a
@@ -23,7 +23,9 @@
 		span anywere from <a href="https://github.com/JHelar/yaff">creating a HTML templating engine</a>
 		in Rust, a <a href="https://github.com/JHelar/om">functional object mapper Library</a> in
 		Typescript to a nose dive into
-		<a href="https://github.com/JHelar/NotesApp">Kotlin multiplatform.</a>
+		<a href="https://github.com/JHelar/NotesApp">Kotlin multiplatform</a>.<br />
+		Or check out my latest dive into
+		<a href="/gameOfLife">Conway's Game of Life</a>!
 	</p>
 	<ul class="mt-6">
 		<li><a href="https://www.linkedin.com/in/john-larsson-8ba758b3/">LinkedIn</a></li>
