@@ -18,6 +18,7 @@ type Cell = {
 let grid: Cell[][] = [];
 let prevTime = 0;
 let run = false;
+let deathAnimation = true;
 let speed = 1;
 let cellSize = 20;
 let context: CanvasRenderingContext2D;
@@ -93,12 +94,14 @@ function renderCell({ cx: x, cy: y, state, opacity }: Cell, context: CanvasRende
 			context.fill();
 			break;
 		case CellState.Dying:
-			context.globalAlpha = opacity;
-			context.fillStyle = '#731B19';
+			if (deathAnimation) {
+				context.globalAlpha = opacity;
+				context.fillStyle = '#731B19';
 
-			context.beginPath();
-			context.arc(x + cellSize / 2, y + cellSize / 2, cellSize / 2, 0, 2 * Math.PI);
-			context.fill();
+				context.beginPath();
+				context.arc(x + cellSize / 2, y + cellSize / 2, cellSize / 2, 0, 2 * Math.PI);
+				context.fill();
+			}
 			break;
 		default:
 			break;
@@ -225,6 +228,9 @@ cellSizeStore.subscribe((value) => {
 	cellSize = value;
 	initializeGrid();
 });
+
+export const deathAnimationStore = writable(deathAnimation);
+deathAnimationStore.subscribe((value) => (deathAnimation = value));
 
 export function clear() {
 	grid.forEach((row) => row.forEach((cell) => (cell.state = CellState.Dead)));

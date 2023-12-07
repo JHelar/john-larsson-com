@@ -1,5 +1,12 @@
 <script lang="ts">
-	import { initialize, runStore, clear, speedStore, cellSizeStore } from './gameOfLife';
+	import {
+		initialize,
+		runStore,
+		clear,
+		speedStore,
+		cellSizeStore,
+		deathAnimationStore
+	} from './gameOfLife';
 
 	function toggleRun() {
 		let run = $runStore;
@@ -31,7 +38,7 @@
 			simulation.
 		</p>
 	</div>
-	<div class="mb-2 flex row gap-x-4">
+	<div class="mb-2 flex row gap-x-4 items-end">
 		<div class="flex-1">
 			<label
 				for="default-range"
@@ -63,6 +70,18 @@
 				on:input={updateCellSize}
 				class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700"
 			/>
+		</div>
+		<div class="flex items-center gap-x-2">
+			<input
+				id="default-checkbox"
+				type="checkbox"
+				bind:checked={$deathAnimationStore}
+				class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+			/>
+			<label
+				for="default-checkbox"
+				class="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">Death animation</label
+			>
 		</div>
 	</div>
 	<div class="flex row items-center gap-x-2">
