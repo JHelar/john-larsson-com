@@ -22,6 +22,9 @@ let deathAnimation = true;
 let speed = 1;
 let cellSize = 20;
 let context: CanvasRenderingContext2D;
+let birthRate = [3];
+let survivalRate = [2, 3];
+let deathRate: number[] = [];
 const MIN_SPEED = 0.8;
 const DEATH_SPEED = 0.8;
 
@@ -68,15 +71,28 @@ function updateCellState(cell: Cell, grid: Cell[][]): CellState {
 		return row[x];
 	}).filter((cell) => cell && cell.state === CellState.Alive);
 
+	const dyingNeighbours = NEIGHBOUR_DELTAS.map(([dx, dy]) => {
+		const y = cell.y + dy;
+		const row = grid[y];
+		if (!row) {
+			return;
+		}
+		const x = cell.x + dx;
+		return row[x];
+	}).filter((cell) => cell && cell.state === CellState.Dying);
+
 	switch (cell.state) {
 		case CellState.Alive:
-			if (aliveNeighbours.length === 2 || aliveNeighbours.length === 3) {
+			if (survivalRate.some((rate) => rate === aliveNeighbours.length)) {
+				return CellState.Alive;
+			}
+			if (deathRate.some((rate) => rate === dyingNeighbours.length)) {
 				return CellState.Alive;
 			}
 			return CellState.Dying;
 		case CellState.Dying:
 		case CellState.Dead:
-			if (aliveNeighbours.length === 3) {
+			if (birthRate.some((rate) => rate === aliveNeighbours.length)) {
 				return CellState.Alive;
 			}
 			return cell.state;
@@ -231,6 +247,29 @@ cellSizeStore.subscribe((value) => {
 
 export const deathAnimationStore = writable(deathAnimation);
 deathAnimationStore.subscribe((value) => (deathAnimation = value));
+
+export const rulesStore = writable(`B${birthRate.join('')}S${survivalRate.join('')}`);
+rulesStore.subscribe((value) => {
+	const match = value.match(/B([\d]+)S([\d]+)(D)?([\d]+)?/);
+	if (match) {
+		const [, birthRateStr, survivalRateStr, , deathRateStr] = match;
+
+		birthRate = birthRateStr
+			.split('')
+			.map(Number)
+			.filter((number) => !isNaN(number));
+
+		survivalRate = survivalRateStr
+			.split('')
+			.map(Number)
+			.filter((number) => !isNaN(number));
+
+		deathRate = (deathRateStr ?? '')
+			.split('')
+			.map(Number)
+			.filter((number) => !isNaN(number));
+	}
+});
 
 export function clear() {
 	grid.forEach((row) => row.forEach((cell) => (cell.state = CellState.Dead)));

@@ -5,7 +5,8 @@
 		clear,
 		speedStore,
 		cellSizeStore,
-		deathAnimationStore
+		deathAnimationStore,
+		rulesStore
 	} from './gameOfLife';
 
 	function toggleRun() {
@@ -83,6 +84,19 @@
 				class="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">Death animation</label
 			>
 		</div>
+	</div>
+	<div class="mb-2">
+		<label for="rules" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+			>Rules</label
+		>
+		<input
+			type="text"
+			id="rules"
+			class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+			placeholder="BXSXDX"
+			pattern="B[0-9]+S[0-9]+(D[0-9]+)?"
+			bind:value={$rulesStore}
+		/>
 	</div>
 	<div class="flex row items-center gap-x-2">
 		<button class="px-4 py-2 bg-red-500 font-semibold" on:click={toggleRun}
