@@ -2,6 +2,7 @@ import { writable } from 'svelte/store';
 
 const enum CellState {
 	Alive,
+	Dying,
 	Dead
 }
 
@@ -11,15 +12,17 @@ type Cell = {
 	cy: number;
 	x: number;
 	y: number;
+	opacity: number;
 };
 
-const grid: Cell[][] = [];
+let grid: Cell[][] = [];
 let prevTime = 0;
 let run = false;
 let speed = 1;
+let cellSize = 20;
+let context: CanvasRenderingContext2D;
 const MIN_SPEED = 0.8;
-
-const CELL_COUNT = 100;
+const DEATH_SPEED = 0.8;
 
 const NEIGHBOUR_DELTAS = [
 	[0, 1],
@@ -48,6 +51,7 @@ function createCell({ cx, cy, x, y }: CreateCell) {
 		cy,
 		x,
 		y,
+		opacity: 0,
 		state: CellState.Dead
 	} satisfies Cell;
 }
@@ -68,32 +72,43 @@ function updateCellState(cell: Cell, grid: Cell[][]): CellState {
 			if (aliveNeighbours.length === 2 || aliveNeighbours.length === 3) {
 				return CellState.Alive;
 			}
-			return CellState.Dead;
+			return CellState.Dying;
+		case CellState.Dying:
 		case CellState.Dead:
 			if (aliveNeighbours.length === 3) {
 				return CellState.Alive;
 			}
-			return CellState.Dead;
+			return cell.state;
 	}
 }
 
-function renderCell({ cx: x, cy: y, state }: Cell, context: CanvasRenderingContext2D) {
-	const cellSize = Math.round(context.canvas.width / (CELL_COUNT / 2));
-
+function renderCell({ cx: x, cy: y, state, opacity }: Cell, context: CanvasRenderingContext2D) {
 	switch (state) {
 		case CellState.Alive:
 			context.globalAlpha = 1;
 			context.fillStyle = '#CEAC5C';
-			context.fillRect(x, y, cellSize, cellSize);
+
+			context.beginPath();
+			context.arc(x + cellSize / 2, y + cellSize / 2, cellSize / 2, 0, 2 * Math.PI);
+			context.fill();
 			break;
-		case CellState.Dead:
-			if (!run) {
-				context.globalAlpha = 0.5;
-				context.strokeStyle = '#034F1B';
-				context.strokeRect(x, y, cellSize, cellSize);
-			}
+		case CellState.Dying:
+			context.globalAlpha = opacity;
+			context.fillStyle = '#731B19';
+
+			context.beginPath();
+			context.arc(x + cellSize / 2, y + cellSize / 2, cellSize / 2, 0, 2 * Math.PI);
+			context.fill();
+			break;
+		default:
 			break;
 	}
+}
+
+function renderGrid({ cx: x, cy: y }: Cell, context: CanvasRenderingContext2D) {
+	context.globalAlpha = 0.5;
+	context.strokeStyle = '#034F1B';
+	context.strokeRect(x, y, cellSize, cellSize);
 }
 
 function startLoop(context: CanvasRenderingContext2D) {
@@ -101,7 +116,7 @@ function startLoop(context: CanvasRenderingContext2D) {
 		const delta = (timeframe - prevTime) / 1000;
 		if (run && delta >= speed) {
 			prevTime = timeframe;
-			cycle(delta, context);
+			update(delta);
 		}
 		render(delta, context);
 		requestAnimationFrame(runLoop);
@@ -114,19 +129,33 @@ function startLoop(context: CanvasRenderingContext2D) {
 	});
 }
 
-function cycle(delta: number, context: CanvasRenderingContext2D) {
+function update(delta: number) {
 	const gridCopy = [...grid.map((row) => [...row.map((cell) => ({ ...cell }))])];
 
 	grid.forEach((row, y) =>
 		row.forEach((cell, x) => {
-			const cellState = updateCellState(cell, gridCopy);
-			grid[y][x].state = cellState;
+			const newState = updateCellState(cell, gridCopy);
+			if (newState == CellState.Dying) {
+				const opacity = Math.max(0, grid[y][x].opacity - DEATH_SPEED * delta);
+				if (opacity > 0) {
+					grid[y][x].opacity = opacity;
+					grid[y][x].state = CellState.Dying;
+				} else {
+					grid[y][x].state = CellState.Dead;
+				}
+			} else {
+				grid[y][x].opacity = 1;
+				grid[y][x].state = newState;
+			}
 		})
 	);
 }
 
 function render(delta: number, context: CanvasRenderingContext2D) {
 	context.clearRect(0, 0, context.canvas.width, context.canvas.height);
+	if (!run) {
+		grid.forEach((row) => row.forEach((cell) => renderGrid(cell, context)));
+	}
 	grid.forEach((row) => row.forEach((cell) => renderCell(cell, context)));
 }
 
@@ -137,44 +166,52 @@ function createAddCell(context: CanvasRenderingContext2D) {
 		const offsetX = e.clientX - rect.left;
 		const offsetY = e.clientY - rect.top;
 
-		const cellSize = Math.round(rect.width / (CELL_COUNT / 2));
 		const x = Math.floor(offsetX / cellSize);
 		const y = Math.floor(offsetY / cellSize);
 
 		grid[y][x].state = grid[y][x].state === CellState.Alive ? CellState.Dead : CellState.Alive;
-		render(0, context);
+		renderCell(grid[y][x], context);
 	};
 }
 
-export function initialize(canvas: HTMLCanvasElement) {
-	const context = canvas.getContext('2d');
-	canvas.height = canvas.width;
-
+function initializeGrid() {
 	if (!context) {
-		throw new Error('Unable to create context from node.');
+		console.log('Missing context');
+		return;
 	}
 
-	canvas.addEventListener('click', createAddCell(context));
+	context.canvas.width = context.canvas.parentElement?.clientWidth ?? 0;
+	context.canvas.height = context.canvas.width * (9 / 16);
+	const horizontalCellCount = Math.floor(context.canvas.width / cellSize);
+	const verticalCellCount = Math.floor(context.canvas.height / cellSize);
 
-	let x = 0;
-	let y = 0;
-	for (let cy = 0; cy < canvas.height; cy += Math.round(canvas.height / (CELL_COUNT / 2))) {
-		x = 0;
+	grid = [];
+	for (let y = 0; y < verticalCellCount; y++) {
 		const row = [];
-		for (let cx = 0; cx < canvas.width; cx += Math.round(canvas.width / (CELL_COUNT / 2))) {
+		for (let x = 0; x < horizontalCellCount; x++) {
 			const cell = createCell({
-				cx,
-				cy,
+				cx: x * cellSize,
+				cy: y * cellSize,
 				x,
 				y
 			});
 			row.push(cell);
-			x++;
 		}
 		grid.push(row);
-		y++;
 	}
 	startLoop(context);
+}
+
+export function initialize(canvas: HTMLCanvasElement) {
+	const canvasContext = canvas.getContext('2d');
+
+	if (!canvasContext) {
+		throw new Error('Unable to create context from node.');
+	}
+
+	canvas.addEventListener('click', createAddCell(canvasContext));
+	context = canvasContext;
+	initializeGrid();
 }
 
 export const runStore = writable(run);
@@ -182,6 +219,12 @@ runStore.subscribe((value) => (run = value));
 
 export const speedStore = writable(50);
 speedStore.subscribe((value) => (speed = ((100 - value - 0) * (MIN_SPEED - 0)) / (100 - 0) + 0));
+
+export const cellSizeStore = writable(cellSize);
+cellSizeStore.subscribe((value) => {
+	cellSize = value;
+	initializeGrid();
+});
 
 export function clear() {
 	grid.forEach((row) => row.forEach((cell) => (cell.state = CellState.Dead)));

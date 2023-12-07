@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { initialize, runStore, clear, speedStore } from './gameOfLife';
+	import { initialize, runStore, clear, speedStore, cellSizeStore } from './gameOfLife';
 
 	function toggleRun() {
 		let run = $runStore;
@@ -13,6 +13,14 @@
 	) {
 		speedStore.set(Number(e.currentTarget.value));
 	}
+
+	function updateCellSize(
+		e: Event & {
+			currentTarget: EventTarget & HTMLInputElement;
+		}
+	) {
+		cellSizeStore.set(Number(e.currentTarget.value));
+	}
 </script>
 
 <div class="container mb-4 flex flex-col">
@@ -23,19 +31,39 @@
 			simulation.
 		</p>
 	</div>
-	<div class="mb-2">
-		<label for="default-range" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
-			>Simulation speed ({$speedStore})</label
-		>
-		<input
-			id="default-range"
-			type="range"
-			min="0"
-			max="100"
-			value={$speedStore}
-			on:input={updateSpeed}
-			class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700"
-		/>
+	<div class="mb-2 flex row gap-x-4">
+		<div class="flex-1">
+			<label
+				for="default-range"
+				class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+				>Simulation speed ({$speedStore})</label
+			>
+			<input
+				id="default-range"
+				type="range"
+				min="0"
+				max="100"
+				value={$speedStore}
+				on:input={updateSpeed}
+				class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700"
+			/>
+		</div>
+		<div class="flex-1">
+			<label
+				for="default-range"
+				class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+				>Cell size ({$cellSizeStore})</label
+			>
+			<input
+				id="default-range"
+				type="range"
+				min="10"
+				max="50"
+				value={$cellSizeStore}
+				on:input={updateCellSize}
+				class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700"
+			/>
+		</div>
 	</div>
 	<div class="flex row items-center gap-x-2">
 		<button class="px-4 py-2 bg-red-500 font-semibold" on:click={toggleRun}
@@ -44,6 +72,6 @@
 		<button class="px-4 py-2 text-red-500 font-semibold" on:click={clear}>Clear</button>
 	</div>
 </div>
-<div class="w-[800px] m-auto">
+<div class="w-screen m-auto">
 	<canvas class="w-full" use:initialize />
 </div>
