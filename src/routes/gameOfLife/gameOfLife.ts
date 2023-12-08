@@ -16,6 +16,7 @@ type Cell = {
 };
 
 let grid: Cell[][] = [];
+let cellLookups = new Set<Cell>();
 let prevTime = 0;
 let run = false;
 let deathAnimation = true;
@@ -60,8 +61,8 @@ function createCell({ cx, cy, x, y }: CreateCell) {
 	} satisfies Cell;
 }
 
-function updateCellState(cell: Cell, grid: Cell[][]): CellState {
-	const aliveNeighbours = NEIGHBOUR_DELTAS.map(([dx, dy]) => {
+function getCellNeighbours(cell: Cell): Cell[] {
+	return NEIGHBOUR_DELTAS.map(([dx, dy]) => {
 		const y = cell.y + dy;
 		const row = grid[y];
 		if (!row) {
@@ -69,17 +70,12 @@ function updateCellState(cell: Cell, grid: Cell[][]): CellState {
 		}
 		const x = cell.x + dx;
 		return row[x];
-	}).filter((cell) => cell && cell.state === CellState.Alive);
+	}).filter<Cell>((cell): cell is Cell => cell !== undefined);
+}
 
-	const dyingNeighbours = NEIGHBOUR_DELTAS.map(([dx, dy]) => {
-		const y = cell.y + dy;
-		const row = grid[y];
-		if (!row) {
-			return;
-		}
-		const x = cell.x + dx;
-		return row[x];
-	}).filter((cell) => cell && cell.state === CellState.Dying);
+function updateCellState(cell: Cell): CellState {
+	const aliveNeighbours = getCellNeighbours(cell).filter((cell) => cell.state === CellState.Alive);
+	const dyingNeighbours = getCellNeighbours(cell).filter((cell) => cell.state === CellState.Dying);
 
 	switch (cell.state) {
 		case CellState.Alive:
@@ -134,8 +130,8 @@ function startLoop(context: CanvasRenderingContext2D) {
 	function runLoop(timeframe: number) {
 		const delta = (timeframe - prevTime) / 1000;
 		if (run && delta >= speed) {
-			prevTime = timeframe;
 			update(delta);
+			prevTime = timeframe;
 		}
 		render(delta, context);
 		requestAnimationFrame(runLoop);
@@ -150,24 +146,30 @@ function startLoop(context: CanvasRenderingContext2D) {
 
 function update(delta: number) {
 	const gridCopy = [...grid.map((row) => [...row.map((cell) => ({ ...cell }))])];
+	const newLookups = new Set<Cell>();
 
-	grid.forEach((row, y) =>
-		row.forEach((cell, x) => {
-			const newState = updateCellState(cell, gridCopy);
-			if (newState == CellState.Dying) {
-				const opacity = Math.max(0, grid[y][x].opacity - DEATH_SPEED * delta);
-				if (opacity > 0) {
-					grid[y][x].opacity = opacity;
-					grid[y][x].state = CellState.Dying;
-				} else {
-					grid[y][x].state = CellState.Dead;
-				}
+	for (const cell of cellLookups) {
+		let newState = updateCellState(cell);
+
+		if (newState == CellState.Dying) {
+			const opacity = Math.max(0, cell.opacity - DEATH_SPEED * delta);
+			if (opacity > 0) {
+				gridCopy[cell.y][cell.x].opacity = opacity;
 			} else {
-				grid[y][x].opacity = 1;
-				grid[y][x].state = newState;
+				gridCopy[cell.y][cell.x].opacity = 1;
+				newState = CellState.Dead;
 			}
-		})
-	);
+		}
+		gridCopy[cell.y][cell.x].state = newState;
+
+		if (newState == CellState.Alive || newState == CellState.Dying) {
+			const neighbours = getCellNeighbours(cell);
+			newLookups.add(gridCopy[cell.y][cell.x]);
+			neighbours.forEach((cell) => newLookups.add(gridCopy[cell.y][cell.x]));
+		}
+	}
+	grid = gridCopy;
+	cellLookups = newLookups;
 }
 
 function render(delta: number, context: CanvasRenderingContext2D) {
@@ -188,8 +190,16 @@ function createAddCell(context: CanvasRenderingContext2D) {
 		const x = Math.floor(offsetX / cellSize);
 		const y = Math.floor(offsetY / cellSize);
 
-		grid[y][x].state = grid[y][x].state === CellState.Alive ? CellState.Dead : CellState.Alive;
-		renderCell(grid[y][x], context);
+		const cell = grid[y][x];
+		if (cell.state === CellState.Alive) {
+			cellLookups.delete(cell);
+			cell.state = CellState.Dead;
+		} else {
+			cellLookups.add(cell);
+			getCellNeighbours(cell).forEach((cell) => cellLookups.add(cell));
+			cell.state = CellState.Alive;
+		}
+		renderCell(cell, context);
 	};
 }
 
@@ -273,4 +283,5 @@ rulesStore.subscribe((value) => {
 
 export function clear() {
 	grid.forEach((row) => row.forEach((cell) => (cell.state = CellState.Dead)));
+	cellLookups.clear();
 }
