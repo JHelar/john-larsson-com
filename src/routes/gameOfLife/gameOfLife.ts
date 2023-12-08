@@ -20,14 +20,15 @@ let cellLookups = new Set<Cell>();
 let prevTime = 0;
 let run = false;
 let deathAnimation = true;
-let speed = 1;
+let simulationSpeed = 1;
+let prevUpdate = 0;
 let cellSize = 20;
 let context: CanvasRenderingContext2D;
 let birthRate = [3];
 let survivalRate = [2, 3];
 let deathRate: number[] = [];
 const MIN_SPEED = 0.8;
-const DEATH_SPEED = 0.8;
+const DEATH_SPEED = 0.6;
 
 const NEIGHBOUR_DELTAS = [
 	[0, 1],
@@ -95,23 +96,23 @@ function updateCellState(cell: Cell): CellState {
 	}
 }
 
-function renderCell({ cx: x, cy: y, state, opacity }: Cell, context: CanvasRenderingContext2D) {
-	switch (state) {
+function renderCell(cell: Cell, context: CanvasRenderingContext2D) {
+	switch (cell.state) {
 		case CellState.Alive:
 			context.globalAlpha = 1;
 			context.fillStyle = '#CEAC5C';
 
 			context.beginPath();
-			context.arc(x + cellSize / 2, y + cellSize / 2, cellSize / 2, 0, 2 * Math.PI);
+			context.arc(cell.cx + cellSize / 2, cell.cy + cellSize / 2, cellSize / 2, 0, 2 * Math.PI);
 			context.fill();
 			break;
 		case CellState.Dying:
 			if (deathAnimation) {
-				context.globalAlpha = opacity;
+				context.globalAlpha = cell.opacity;
 				context.fillStyle = '#731B19';
 
 				context.beginPath();
-				context.arc(x + cellSize / 2, y + cellSize / 2, cellSize / 2, 0, 2 * Math.PI);
+				context.arc(cell.cx + cellSize / 2, cell.cy + cellSize / 2, cellSize / 2, 0, 2 * Math.PI);
 				context.fill();
 			}
 			break;
@@ -128,12 +129,16 @@ function renderGrid({ cx: x, cy: y }: Cell, context: CanvasRenderingContext2D) {
 
 function startLoop(context: CanvasRenderingContext2D) {
 	function runLoop(timeframe: number) {
-		const delta = (timeframe - prevTime) / 1000;
-		if (run && delta >= speed) {
-			update(delta);
-			prevTime = timeframe;
+		const deltaTime = (timeframe - prevTime) / 1000;
+		const updateTime = (timeframe - prevUpdate) / 1000;
+		prevTime = timeframe;
+
+		if (run && updateTime >= simulationSpeed) {
+			prevUpdate = timeframe;
+			updateCells();
 		}
-		render(delta, context);
+		update(deltaTime);
+		render(deltaTime, context);
 		requestAnimationFrame(runLoop);
 	}
 
@@ -144,22 +149,20 @@ function startLoop(context: CanvasRenderingContext2D) {
 	});
 }
 
-function update(delta: number) {
+function updateCells() {
 	const gridCopy = [...grid.map((row) => [...row.map((cell) => ({ ...cell }))])];
 	const newLookups = new Set<Cell>();
 
 	for (const cell of cellLookups) {
 		let newState = updateCellState(cell);
 
-		if (newState == CellState.Dying) {
-			const opacity = Math.max(0, cell.opacity - DEATH_SPEED * delta);
-			if (opacity > 0) {
-				gridCopy[cell.y][cell.x].opacity = opacity;
-			} else {
-				gridCopy[cell.y][cell.x].opacity = 1;
-				newState = CellState.Dead;
-			}
+		if (newState === CellState.Alive) {
+			gridCopy[cell.y][cell.x].opacity = 1;
 		}
+		if (newState === CellState.Dying && cell.opacity <= 0) {
+			newState = CellState.Dead;
+		}
+
 		gridCopy[cell.y][cell.x].state = newState;
 
 		if (newState == CellState.Alive || newState == CellState.Dying) {
@@ -170,6 +173,14 @@ function update(delta: number) {
 	}
 	grid = gridCopy;
 	cellLookups = newLookups;
+}
+
+function update(delta: number) {
+	for (const cell of cellLookups) {
+		if (cell.state === CellState.Dying) {
+			cell.opacity = Math.max(0, cell.opacity - DEATH_SPEED * delta);
+		}
+	}
 }
 
 function render(delta: number, context: CanvasRenderingContext2D) {
@@ -247,7 +258,9 @@ export const runStore = writable(run);
 runStore.subscribe((value) => (run = value));
 
 export const speedStore = writable(50);
-speedStore.subscribe((value) => (speed = ((100 - value - 0) * (MIN_SPEED - 0)) / (100 - 0) + 0));
+speedStore.subscribe(
+	(value) => (simulationSpeed = ((100 - value - 0) * (MIN_SPEED - 0)) / (100 - 0) + 0)
+);
 
 export const cellSizeStore = writable(cellSize);
 cellSizeStore.subscribe((value) => {
