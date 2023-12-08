@@ -8,6 +8,7 @@
 		deathAnimationStore,
 		rulesStore
 	} from './gameOfLife';
+	import Head from '$lib/components/Head.svelte';
 
 	function toggleRun() {
 		let run = $runStore;
@@ -30,6 +31,11 @@
 		cellSizeStore.set(Number(e.currentTarget.value));
 	}
 </script>
+
+<Head
+	title="Conway's Game of Life"
+	description="An interactive simulation of Conway's Game of Life"
+/>
 
 <div class="container mb-4 flex flex-col">
 	<div class="mb-4">
