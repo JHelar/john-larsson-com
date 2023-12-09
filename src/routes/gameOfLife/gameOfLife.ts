@@ -249,8 +249,8 @@ export function initialize(canvas: HTMLCanvasElement) {
 		throw new Error('Unable to create context from node.');
 	}
 
-	canvas.addEventListener('click', createAddCell(canvasContext));
 	context = canvasContext;
+	canvas.addEventListener('click', createAddCell(canvasContext));
 	initializeGrid();
 }
 
