@@ -18,9 +18,9 @@ const BRANCH_LENGTH_RATIO = 0.65;
 const BRANCH_THICKNESS_RATIO = 0.65;
 const BRANCH_ANGLE = getRadians(50);
 const GROWTH_SPEED = 350;
-const MAX_BRANCH_DEPTH = 7;
-const BRANCH_COUNT = 6;
-const BONZAI_MODE = true;
+const MAX_BRANCH_DEPTH = 10;
+const BRANCH_COUNT = 2;
+const BONZAI_MODE = false;
 
 // Constants
 const CONSTANTS = {
@@ -89,9 +89,9 @@ function startLoop(context: CanvasRenderingContext2D) {
 
 		if (runUpdate || invalidate) {
 			update(deltaTime, invalidate);
+			render(context);
 			invalidate = false;
 		}
-		render(context);
 		requestAnimationFrame(runLoop);
 	}
 
@@ -144,7 +144,7 @@ function updateBranch(
 	deltaTime: number,
 	currentBranchDepth: number,
 	invalidate: boolean
-) {
+): boolean {
 	if (currentBranchDepth > CONSTANTS.MAX_BRANCH_DEPTH) {
 		root.branches.splice(0);
 		root.hasBranches = false;
@@ -158,40 +158,38 @@ function updateBranch(
 
 	if (length === root.goalLength) {
 		root.doneAnimating = true;
-		if (root.hasBranches && !invalidate) {
-			root.branches.forEach((child) => {
-				depthReached = updateBranch(child, deltaTime, currentBranchDepth + 1, invalidate);
-			});
-		} else if (root.hasBranches && invalidate) {
-			root.doneAnimating = false;
-			const branchDiff =
-				(CONSTANTS.BONZAI_MODE
-					? 1 + Math.round(Math.random() * CONSTANTS.BRANCH_COUNT)
-					: CONSTANTS.BRANCH_COUNT) - root.branches.length;
-			// Cut branches
-			if (branchDiff < 0) {
-				root.branches.splice(0, Math.abs(branchDiff));
-			} else if (branchDiff > 0) {
-				Array(branchDiff)
-					.fill(0)
-					.forEach(() => {
-						const thickness = root.thickness * CONSTANTS.BRANCH_THICKNESS_RATIO;
-						root.branches.push({
-							branches: [],
-							hasBranches: false,
-							doneAnimating: false,
-							goalLength: length * CONSTANTS.BRANCH_LENGTH_RATIO,
-							initialY: root.y,
-							length: 0,
-							thickness: root.thickness * CONSTANTS.BRANCH_THICKNESS_RATIO,
-							x: root.x + root.thickness - thickness - (root.thickness - thickness) / 2,
-							y: 0
+		if (root.hasBranches) {
+			if (invalidate) {
+				root.doneAnimating = false;
+				const branchDiff =
+					(CONSTANTS.BONZAI_MODE
+						? 1 + Math.round(Math.random() * CONSTANTS.BRANCH_COUNT)
+						: CONSTANTS.BRANCH_COUNT) - root.branches.length;
+				// Cut branches
+				if (branchDiff < 0) {
+					root.branches.splice(0, Math.abs(branchDiff));
+				} else if (branchDiff > 0) {
+					Array(branchDiff)
+						.fill(0)
+						.forEach(() => {
+							const thickness = root.thickness * CONSTANTS.BRANCH_THICKNESS_RATIO;
+							root.branches.push({
+								branches: [],
+								hasBranches: false,
+								doneAnimating: false,
+								goalLength: length * CONSTANTS.BRANCH_LENGTH_RATIO,
+								initialY: root.y,
+								length: 0,
+								thickness: root.thickness * CONSTANTS.BRANCH_THICKNESS_RATIO,
+								x: root.x + root.thickness - thickness - (root.thickness - thickness) / 2,
+								y: 0
+							});
 						});
-					});
+				}
 			}
-			root.branches.forEach((child) => {
-				depthReached = updateBranch(child, deltaTime, currentBranchDepth + 1, invalidate);
-			});
+			depthReached = root.branches
+				.map((child) => updateBranch(child, deltaTime, currentBranchDepth + 1, invalidate))
+				.every((didReach) => didReach);
 		} else {
 			root.hasBranches = true;
 			const branchCount = CONSTANTS.BONZAI_MODE
@@ -221,7 +219,7 @@ function updateBranch(
 
 function update(deltaTime: number, invalidate: boolean) {
 	const depthReached = updateBranch(tree, deltaTime, 0, invalidate);
-	// runUpdate = !depthReached;
+	runUpdate = !depthReached;
 }
 
 function render(context: CanvasRenderingContext2D) {

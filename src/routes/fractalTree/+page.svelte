@@ -15,6 +15,11 @@
 <div class="container mb-4 flex flex-col">
 	<div class="mb-4">
 		<h1 class="text-2xl font-semibold mb-2">Fractal tree</h1>
+		<p class="text-sm">Update the different values in order to get different results.</p>
+		<p class="text-sm">
+			<b>A word of warning:</b> high values of either slider might result in high memory usage / site
+			crash!
+		</p>
 	</div>
 	<div class="mb-2 flex row gap-x-4 items-end">
 		<div class="flex-1">
