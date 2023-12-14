@@ -5,6 +5,8 @@
 		MAX_BRANCH_DEPTH_STORE,
 		ROOT_LENGTH_RATIO_STORE,
 		ROOT_THICKNESS_STORE,
+		BRANCH_LENGTH_RATIO_STORE,
+		BRANCH_THICKNESS_RATIO_STORE,
 		initialize
 	} from './fractalTree';
 	import Head from '$lib/components/Head.svelte';
@@ -21,7 +23,7 @@
 			crash!
 		</p>
 	</div>
-	<div class="mb-2 flex row gap-x-4 items-end">
+	<div class="mb-4 flex row gap-x-4 items-end">
 		<div class="flex-1">
 			<label
 				for="default-range"
@@ -63,6 +65,73 @@
 				for="default-checkbox"
 				class="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">Bonzai mode</label
 			>
+		</div>
+	</div>
+	<div class="mb-4 flex row gap-x-4 items-end">
+		<div class="flex-1">
+			<label
+				for="default-range"
+				class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+				>Branch length ratio ({$BRANCH_LENGTH_RATIO_STORE})</label
+			>
+			<input
+				id="default-range"
+				type="range"
+				min="0"
+				max="1"
+				step="0.1"
+				bind:value={$BRANCH_LENGTH_RATIO_STORE}
+				class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700"
+			/>
+		</div>
+		<div class="flex-1">
+			<label
+				for="default-range"
+				class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+				>Branch thickness ratio ({$BRANCH_THICKNESS_RATIO_STORE})</label
+			>
+			<input
+				id="default-range"
+				type="range"
+				min="0"
+				max="1"
+				step="0.1"
+				bind:value={$BRANCH_THICKNESS_RATIO_STORE}
+				class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700"
+			/>
+		</div>
+	</div>
+	<div class="flex row gap-x-4 items-end">
+		<div class="flex-1">
+			<label
+				for="default-range"
+				class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+				>Root length ratio ({$ROOT_LENGTH_RATIO_STORE})</label
+			>
+			<input
+				id="default-range"
+				type="range"
+				min="0"
+				max="1"
+				step="0.1"
+				bind:value={$ROOT_LENGTH_RATIO_STORE}
+				class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700"
+			/>
+		</div>
+		<div class="flex-1">
+			<label
+				for="default-range"
+				class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+				>Root thickness ({$ROOT_THICKNESS_STORE})</label
+			>
+			<input
+				id="default-range"
+				type="range"
+				min="1"
+				max="100"
+				bind:value={$ROOT_THICKNESS_STORE}
+				class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700"
+			/>
 		</div>
 	</div>
 </div>

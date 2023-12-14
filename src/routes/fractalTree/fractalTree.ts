@@ -39,6 +39,7 @@ let tree: Branch;
 let runUpdate = true;
 let invalidate = false;
 let prevTime = 0;
+let context: CanvasRenderingContext2D;
 
 export const ROOT_THICKNESS_STORE = writable(CONSTANTS.ROOT_THICKNESS);
 export const ROOT_LENGTH_RATIO_STORE = writable(CONSTANTS.ROOT_LENGTH_RATIO);
@@ -49,22 +50,32 @@ export const GROWTH_SPEED_STORE = writable(CONSTANTS.GROWTH_SPEED);
 export const MAX_BRANCH_DEPTH_STORE = writable(CONSTANTS.MAX_BRANCH_DEPTH);
 export const BRANCH_COUNT_STORE = writable(CONSTANTS.BRANCH_COUNT);
 export const BONZAI_MODE_STORE = writable(CONSTANTS.BONZAI_MODE);
-ROOT_THICKNESS_STORE.subscribe((value) => (CONSTANTS.ROOT_THICKNESS = value));
-ROOT_LENGTH_RATIO_STORE.subscribe((value) => (CONSTANTS.ROOT_LENGTH_RATIO = value));
+ROOT_THICKNESS_STORE.subscribe((value) => {
+	if (tree) {
+		tree.thickness = value;
+		tree.branches = [];
+		tree.hasBranches = false;
+	}
+	CONSTANTS.ROOT_THICKNESS = value;
+});
+ROOT_LENGTH_RATIO_STORE.subscribe((value) => {
+	if (tree) {
+		tree.goalLength = context.canvas.height * value;
+		tree.length = Math.min(tree.length, tree.goalLength);
+		tree.branches = [];
+		tree.doneAnimating = false;
+		tree.hasBranches = false;
+	}
+	CONSTANTS.ROOT_LENGTH_RATIO = value;
+});
 BRANCH_LENGTH_RATIO_STORE.subscribe((value) => (CONSTANTS.BRANCH_LENGTH_RATIO = value));
 BRANCH_THICKNESS_RATIO_STORE.subscribe((value) => (CONSTANTS.BRANCH_THICKNESS_RATIO = value));
 BRANCH_ANGLE_STORE.subscribe((value) => (CONSTANTS.BRANCH_ANGLE = value));
 GROWTH_SPEED_STORE.subscribe((value) => (CONSTANTS.GROWTH_SPEED = value));
 MAX_BRANCH_DEPTH_STORE.subscribe((value) => (CONSTANTS.MAX_BRANCH_DEPTH = value));
 BRANCH_COUNT_STORE.subscribe((value) => (CONSTANTS.BRANCH_COUNT = value));
-BONZAI_MODE_STORE.subscribe((value) => {
-	if (tree) {
-		tree.doneAnimating = false;
-		tree.branches.splice(0);
-	}
-	CONSTANTS.BONZAI_MODE = value;
-});
-const INVALIDATE_STORE = derived(
+BONZAI_MODE_STORE.subscribe((value) => (CONSTANTS.BONZAI_MODE = value));
+derived(
 	[
 		ROOT_THICKNESS_STORE,
 		ROOT_LENGTH_RATIO_STORE,
@@ -145,25 +156,18 @@ function updateBranch(
 	currentBranchDepth: number,
 	invalidate: boolean
 ): boolean {
-	if (currentBranchDepth > CONSTANTS.MAX_BRANCH_DEPTH) {
-		root.branches.splice(0);
-		root.hasBranches = false;
-		return true;
-	}
 	let depthReached = false;
 
 	const length = Math.min(root.goalLength, root.length + CONSTANTS.GROWTH_SPEED * deltaTime);
 	root.length = length;
 	root.y = root.initialY - length;
-
 	if (length === root.goalLength) {
 		root.doneAnimating = true;
 		if (root.hasBranches) {
 			if (invalidate) {
-				root.doneAnimating = false;
 				const branchDiff =
 					(CONSTANTS.BONZAI_MODE
-						? 1 + Math.round(Math.random() * CONSTANTS.BRANCH_COUNT)
+						? Math.max(1, Math.round(Math.random() * CONSTANTS.BRANCH_COUNT))
 						: CONSTANTS.BRANCH_COUNT) - root.branches.length;
 				// Cut branches
 				if (branchDiff < 0) {
@@ -185,15 +189,37 @@ function updateBranch(
 								y: 0
 							});
 						});
+				} else {
+					root.branches.forEach((branch) => {
+						const thickness = root.thickness * CONSTANTS.BRANCH_THICKNESS_RATIO;
+						Object.assign(branch, {
+							branches: [],
+							hasBranches: false,
+							doneAnimating: false,
+							goalLength: length * CONSTANTS.BRANCH_LENGTH_RATIO,
+							initialY: root.y,
+							length: 0,
+							thickness: root.thickness * CONSTANTS.BRANCH_THICKNESS_RATIO,
+							x: root.x + root.thickness - thickness - (root.thickness - thickness) / 2,
+							y: 0
+						});
+					});
 				}
 			}
-			depthReached = root.branches
-				.map((child) => updateBranch(child, deltaTime, currentBranchDepth + 1, invalidate))
-				.every((didReach) => didReach);
+			const nextBranchDepth = currentBranchDepth + 1;
+			if (nextBranchDepth > CONSTANTS.MAX_BRANCH_DEPTH) {
+				root.branches = [];
+				root.hasBranches = false;
+				depthReached = true;
+			} else {
+				depthReached = root.branches
+					.map((child) => updateBranch(child, deltaTime, currentBranchDepth + 1, invalidate))
+					.every((didReach) => didReach);
+			}
 		} else {
 			root.hasBranches = true;
 			const branchCount = CONSTANTS.BONZAI_MODE
-				? 1 + Math.round(Math.random() * CONSTANTS.BRANCH_COUNT)
+				? Math.max(1, Math.round(Math.random() * CONSTANTS.BRANCH_COUNT))
 				: CONSTANTS.BRANCH_COUNT;
 			Array(branchCount)
 				.fill(0)
@@ -228,27 +254,27 @@ function render(context: CanvasRenderingContext2D) {
 }
 
 export function initialize(canvas: HTMLCanvasElement) {
-	const context = canvas.getContext('2d');
+	const canvasContext = canvas.getContext('2d');
 
-	if (!context) {
+	if (!canvasContext) {
 		throw new Error('Unable to create context from node.');
 	}
 
-	context.canvas.width = context.canvas.parentElement?.clientWidth ?? 0;
-	context.canvas.height = context.canvas.width * (9 / 16);
-
-	const branchLength = context.canvas.height * CONSTANTS.ROOT_LENGTH_RATIO;
+	canvasContext.canvas.width = canvasContext.canvas.parentElement?.clientWidth ?? 0;
+	canvasContext.canvas.height = canvasContext.canvas.width * (9 / 16);
+	context = canvasContext;
+	const branchLength = canvasContext.canvas.height * CONSTANTS.ROOT_LENGTH_RATIO;
 	tree = {
 		goalLength: branchLength,
 		length: 0,
 		hasBranches: false,
 		thickness: CONSTANTS.ROOT_THICKNESS,
-		x: context.canvas.width / 2 - CONSTANTS.ROOT_THICKNESS / 2,
+		x: canvasContext.canvas.width / 2 - CONSTANTS.ROOT_THICKNESS / 2,
 		y: 0,
 		initialY: canvas.height,
 		branches: [],
 		doneAnimating: false
 	};
 
-	startLoop(context);
+	startLoop(canvasContext);
 }
