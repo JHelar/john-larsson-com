@@ -34,5 +34,11 @@
 		"typescript": "^5.0.0",
 		"vite": "^5.0.0"
 	},
-	"type": "module"
+	"type": "module",
+	"dependencies": {
+		"@threlte/core": "^7.0.12",
+		"@threlte/extras": "^8.1.1",
+		"@types/three": "^0.160.0",
+		"three": "^0.160.0"
+	}
 }
