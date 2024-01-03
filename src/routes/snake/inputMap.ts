@@ -9,9 +9,9 @@ export enum InputKey {
 
 export const KeyboardMap: Record<string, InputKey> = {
 	KeyW: InputKey.Up,
-	KeyA: InputKey.Right,
+	KeyA: InputKey.Left,
 	KeyS: InputKey.Down,
-	KeyD: InputKey.Left
+	KeyD: InputKey.Right
 };
 
 export const inputStore = writable<InputKey | null>(null);
