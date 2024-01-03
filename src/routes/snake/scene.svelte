@@ -20,7 +20,7 @@
 	const PART_COUNT = 5;
 	const PART_SIZE = 1;
 	const PART_SPEED = 10;
-	const ROTATION_SPEED = 25 * MathUtils.DEG2RAD;
+	const ROTATION_SPEED = 10;
 	const CAMERA_ZOOM = 50;
 
 	const forwardVector = new Vector3(-1, 0, 0);
@@ -28,8 +28,10 @@
 	let horizontalDirection = 1;
 
 	const camera = new OrthographicCamera();
-	let bodyRotation = 0;
-	let toRotation = 0;
+	let bodyRotationY = 0;
+	let toRotationY = 0;
+	let bodyRotationX = 0;
+	let toRotationX = 0;
 	let rotating = false;
 
 	const parts = Array(PART_COUNT)
@@ -45,32 +47,67 @@
 		});
 
 	watch(inputStore, (input) => {
-		console.log(input);
 		switch (input) {
 			case InputKey.Up:
-				forwardVector.set(0, -1, 0);
+				forwardVector.set(0, 1, 0);
+				horizontalDirection = 0;
 				break;
 			case InputKey.Down:
-				forwardVector.set(0, 1, 0);
+				forwardVector.set(0, -1, 0);
+				horizontalDirection = 0;
 				break;
 			case InputKey.Left:
-				forwardVector.set(-1, 0, 0);
+				if (horizontalDirection === 1) {
+					break;
+				}
+				if (Math.abs(forwardVector.x) === 1) {
+					forwardVector.set(forwardVector.x * -1, 0, 0);
+				} else if (Math.abs(forwardVector.z) === 1) {
+					forwardVector.set(0, 0, forwardVector.z * -1);
+				} else {
+					if (face % 2 === 0) {
+						forwardVector.set(face <= 1 ? -1 : 1, 0, 0);
+					} else {
+						forwardVector.set(0, 0, face <= 1 ? -1 : 1);
+					}
+				}
 				horizontalDirection = 1;
 				break;
 			case InputKey.Right:
-				forwardVector.set(1, 0, 0);
+				if (horizontalDirection === -1) {
+					break;
+				}
+				if (Math.abs(forwardVector.x) === 1) {
+					forwardVector.set(forwardVector.x * -1, 0, 0);
+				} else if (Math.abs(forwardVector.z) === 1) {
+					forwardVector.set(0, 0, forwardVector.z * -1);
+				} else {
+					if (face % 0 === 2) {
+						forwardVector.set(face <= 1 ? 1 : -1, 0, 0);
+					} else {
+						forwardVector.set(0, 0, face <= 1 ? 1 : -1);
+					}
+				}
 				horizontalDirection = -1;
+				break;
+			case InputKey.RotateLeft:
+				toRotationY = toRotationY + 90 * MathUtils.DEG2RAD;
+				break;
+			case InputKey.RotateRight:
+				toRotationY = toRotationY - 90 * MathUtils.DEG2RAD;
+				break;
+			case InputKey.RotateUp:
+				toRotationX = toRotationX - 90 * MathUtils.DEG2RAD;
+				break;
+			case InputKey.RotateDown:
+				toRotationX = toRotationX + 90 * MathUtils.DEG2RAD;
 				break;
 			default:
 				break;
 		}
 	});
 
-	const {
-		task: bodyTask,
-		start: startBody,
-		stop: stopBody
-	} = useTask((delta) => {
+	const { task: bodyTask } = useTask((delta) => {
 		const oldPositions = parts.map(({ position }) => position);
 		for (let i = 1; i < parts.length; i++) {
 			parts[i].position.lerp(oldPositions[i - 1], PART_SPEED * delta);
@@ -83,37 +120,24 @@
 		parts[0].position = head.position;
 	});
 
-	const {
-		start: startRotation,
-		stop: stopRotation,
-		task: rotationTask
-	} = useTask((delta) => {
-		if (horizontalDirection < 0) {
-			bodyRotation -= ROTATION_SPEED * delta;
-		} else {
-			bodyRotation += ROTATION_SPEED * delta;
-		}
+	useTask((delta) => {
+		bodyRotationY = MathUtils.lerp(bodyRotationY, toRotationY, ROTATION_SPEED * delta);
+		bodyRotationX = MathUtils.lerp(bodyRotationX, toRotationX, ROTATION_SPEED * delta);
 	});
 
 	useTask(
 		() => {
-			const rotationDiff = Math.abs((bodyRotation - toRotation) * MathUtils.RAD2DEG);
-			if (rotating && rotationDiff <= 0.1) {
-				bodyRotation = toRotation;
-				stopRotation();
-				rotating = false;
-				return;
-			}
-
 			const head = parts[0];
-			const maxX = camera.right / camera.zoom;
+			const maxX = camera.right / camera.zoom / 2 - PART_SIZE;
 			const minX = -maxX;
 
-			const maxY = camera.top / camera.zoom;
+			const maxY = camera.top / camera.zoom / 2 - PART_SIZE;
 			const minY = -maxY;
 
-			const forwadPos = Math.floor(forwardVector.clone().dot(head.position));
-			if (forwadPos > maxX) {
+			const horizontalPos = Math.floor(
+				forwardVector.clone().multiply(new Vector3(1, 0, 1)).dot(head.position)
+			);
+			if (horizontalPos > maxX) {
 				face = (face + horizontalDirection) % 4;
 				if (face < 0) {
 					face = 3;
@@ -127,14 +151,15 @@
 					forwardVector.set(faceDirection, 0, 0);
 					head.position.setZ(MathUtils.clamp(head.position.z, minX, maxX));
 				}
-				toRotation = bodyRotation + 90 * horizontalDirection * MathUtils.DEG2RAD;
-				rotating = true;
-				startRotation();
+			}
+			const verticalPos = Math.floor(
+				forwardVector.clone().multiply(new Vector3(0, 1, 0)).dot(head.position)
+			);
+			if (verticalPos > maxY) {
 			}
 		},
-		{ after: [bodyTask, rotationTask] }
+		{ after: [bodyTask] }
 	);
-	stopRotation();
 </script>
 
 <Input />
@@ -143,9 +168,9 @@
 <!-- <T.PerspectiveCamera position={[0, 0, 50]} castShadow /> -->
 <T.DirectionalLight position={[0, 0, 25]} intensity={2} castShadow />
 
-<T.Group position={[0, 0, 0]} rotation.y={bodyRotation}>
+<T.Group position={[0, 0, 0]} rotation.y={bodyRotationY} rotation.x={bodyRotationX}>
 	<T.Mesh>
-		<T.BoxGeometry args={[CAMERA_ZOOM / 2, CAMERA_ZOOM / 2, CAMERA_ZOOM / 2]} />
+		<T.BoxGeometry args={[CAMERA_ZOOM / 4, CAMERA_ZOOM / 4, CAMERA_ZOOM / 4]} />
 		<T.MeshStandardMaterial color={'green'} />
 	</T.Mesh>
 	{#each parts as part}
