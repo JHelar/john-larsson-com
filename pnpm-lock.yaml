@@ -5,12 +5,18 @@ settings:
   excludeLinksFromLockfile: false
 
 dependencies:
+  '@dimforge/rapier3d-compat':
+    specifier: ^0.11.2
+    version: 0.11.2
   '@threlte/core':
     specifier: ^7.0.12
     version: 7.0.12(svelte@3.55.1)(three@0.160.0)
   '@threlte/extras':
     specifier: ^8.1.1
     version: 8.1.1(svelte@3.55.1)(three@0.160.0)
+  '@threlte/rapier':
+    specifier: ^1.1.4
+    version: 1.1.4(@dimforge/rapier3d-compat@0.11.2)(svelte@3.55.1)(three@0.160.0)
   '@types/three':
     specifier: ^0.160.0
     version: 0.160.0
