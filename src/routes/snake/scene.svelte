@@ -5,17 +5,18 @@
 		Mesh,
 		OrthographicCamera,
 		Vector3,
-		MathUtils,
 		Group,
-		AxesHelper,
 		ArrowHelper,
-		Quaternion,
-		Matrix4,
-		Vector2
+		Vector2,
+		Object3D
 	} from 'three';
 	import Input from './input.svelte';
 	import { InputKey, inputStore } from './inputMap';
+	import Box from './box.svelte';
+	import Food from './food.svelte';
+	import { useRapier } from '@threlte/rapier';
 
+	let headCollider;
 	const headColor = new Color('hotpink');
 	const tailColor = new Color('red');
 	const PART_COUNT = 5;
@@ -24,16 +25,26 @@
 	const ROTATION_SPEED = 0.02;
 	const CAMERA_ZOOM = 50;
 
-	let forwardVector = new Vector3(-1, 0, 0);
+	const UP = new Vector3(0, 1, 0);
+	const DOWN = new Vector3(0, -1, 0);
+	const RIGHT = new Vector3(1, 0, 0);
+	const LEFT = new Vector3(-1, 0, 0);
+
+	const FLOOR_X = CAMERA_ZOOM / 8 + PART_SIZE / 2;
+
+	let forwardVector = RIGHT;
+	let perpendicularVector = DOWN;
+
 	const camera = new OrthographicCamera();
 	const body = new Group();
+	const cameraPoint = new Object3D();
 
 	const directionVectors = [
 		new Vector3(0, 0, 1), // Front
-		new Vector3(0, 1, 0), // Top
-		new Vector3(1, 0, 0), // Right
-		new Vector3(0, -1, 0), // Bottom
-		new Vector3(-1, 0, 0), // Left
+		UP.clone(), // Top
+		RIGHT.clone(), // Right
+		DOWN.clone(), // Bottom
+		LEFT.clone(), // Left
 		new Vector3(0, 0, -1) // Back
 	];
 	let currentRotationY = 0;
@@ -42,57 +53,81 @@
 	let toRotationX = 0;
 	let isRotating = false;
 
-	const arrow = new ArrowHelper(forwardVector, new Vector3(), 5, '#41b6e6');
-	const upVector = new Vector3(0, 0, 0);
-	const worldQuaternion = new Quaternion();
-	const cubeArrow = new ArrowHelper(forwardVector, new Vector3(), 10, '#fce300');
-	// const cubeArrowLeft = new ArrowHelper(new Vector3(-1, 0, 0), new Vector3(), 10, '#ff5fa2');
-	// const cubeArrowRight = new ArrowHelper(new Vector3(1, 0, 0), new Vector3(), 10, '#a9431e');
+	const headArrows = [
+		new ArrowHelper(forwardVector, new Vector3(), 5, '#41b6e6')
+		// new ArrowHelper(new Vector3(0, 0, -1), new Vector3(), 5, '#41b6a6')
+	];
+	const worldArrows = directionVectors.map(
+		(vec, i) =>
+			new ArrowHelper(
+				vec,
+				new Vector3(),
+				5 + i,
+				new Color('red').lerp(new Color('blue'), (i + 1) / directionVectors.length)
+			)
+	);
 
 	const parts = Array(PART_COUNT)
 		.fill(0)
 		.map((_, i) => {
 			const part = {
 				mesh: new Mesh(),
-				position: new Vector3(i * PART_SIZE, 0, CAMERA_ZOOM / 4),
+				position: new Vector3(i * PART_SIZE, 0, FLOOR_X),
 				size: [PART_SIZE, PART_SIZE, PART_SIZE],
 				color: headColor.clone().lerp(tailColor, i / PART_COUNT)
 			};
 			return part;
 		});
 
-	function updateDirectionVectors(newRotation: Vector2) {
-		if (isRotating) return;
+	const { world, rapier } = useRapier();
+	const colliderDesc = rapier.ColliderDesc.cuboid(
+		PART_SIZE / 2,
+		PART_SIZE / 2,
+		PART_SIZE / 2
+	).setSensor(true);
+	const colliderHandle = world.createCollider(colliderDesc, undefined);
 
-		if (newRotation.x < 0) {
+	function updateDirectionVectors(newRotation: Vector2) {
+		if (isRotating) return false;
+
+		if (newRotation.x > 0) {
 			const temp = directionVectors[5].clone();
-			directionVectors[5] = directionVectors[1];
-			directionVectors[1] = directionVectors[0];
-			directionVectors[0] = directionVectors[3];
+			directionVectors[5] = directionVectors[1].clone();
+			directionVectors[1] = directionVectors[0].clone();
+			directionVectors[0] = directionVectors[3].clone();
 			directionVectors[3] = temp;
-		} else if (newRotation.x > 0) {
+		} else if (newRotation.x < 0) {
 			const temp = directionVectors[5].clone();
-			directionVectors[5] = directionVectors[3];
-			directionVectors[3] = directionVectors[0];
-			directionVectors[0] = directionVectors[1];
+			directionVectors[5] = directionVectors[3].clone();
+			directionVectors[3] = directionVectors[0].clone();
+			directionVectors[0] = directionVectors[1].clone();
 			directionVectors[1] = temp;
+		} else if (newRotation.y > 0) {
+			const temp = directionVectors[4].clone();
+			directionVectors[4] = directionVectors[0].clone();
+			directionVectors[0] = directionVectors[2].clone();
+			directionVectors[2] = directionVectors[5].clone();
+			directionVectors[5] = temp;
 		} else if (newRotation.y < 0) {
 			const temp = directionVectors[5].clone();
-			directionVectors[5] = directionVectors[2];
-			directionVectors[2] = directionVectors[0];
-			directionVectors[0] = directionVectors[4];
-			directionVectors[4] = temp;
-		} else if (newRotation.y > 0) {
-			const temp = directionVectors[5].clone();
-			directionVectors[5] = directionVectors[2];
-			directionVectors[2] = directionVectors[0];
-			directionVectors[0] = directionVectors[4];
+			directionVectors[5] = directionVectors[2].clone();
+			directionVectors[2] = directionVectors[0].clone();
+			directionVectors[0] = directionVectors[4].clone();
 			directionVectors[4] = temp;
 		}
 
+		worldArrows.forEach((arrow, i) => arrow.setDirection(directionVectors[i]));
 		toRotationX += newRotation.x;
 		toRotationY += newRotation.y;
 		isRotating = true;
+	}
+
+	function getFrontVector() {
+		return directionVectors[0];
+	}
+
+	function getBackVector() {
+		return directionVectors[5];
 	}
 
 	function getUpVector() {
@@ -111,33 +146,51 @@
 		return directionVectors[3];
 	}
 
-	function getFrontVector() {
-		return directionVectors[0];
-	}
-
-	function getBackVector() {
-		return directionVectors[5];
-	}
-
 	watch(inputStore, (input) => {
 		switch (input) {
 			case InputKey.Up:
-				forwardVector = getUpVector();
+				perpendicularVector = getRightVector();
+				if (forwardVector.equals(getFrontVector()) || forwardVector.equals(getBackVector())) {
+					forwardVector = getBackVector();
+				} else {
+					forwardVector = getUpVector();
+				}
 				break;
 			case InputKey.Down:
-				forwardVector = getDownVector();
+				{
+					perpendicularVector = getLeftVector();
+					if (forwardVector.equals(getFrontVector()) || forwardVector.equals(getBackVector())) {
+						forwardVector = getFrontVector();
+					} else {
+						forwardVector = getDownVector();
+					}
+				}
 				break;
 			case InputKey.Left:
-				forwardVector = getLeftVector();
+				{
+					perpendicularVector = getUpVector();
+					if (forwardVector.equals(getFrontVector()) || forwardVector.equals(getBackVector())) {
+						forwardVector = getFrontVector();
+					} else {
+						forwardVector = getLeftVector();
+					}
+				}
 				break;
 			case InputKey.Right:
-				forwardVector = getRightVector();
+				{
+					perpendicularVector = getDownVector();
+					if (forwardVector.equals(getFrontVector()) || forwardVector.equals(getBackVector())) {
+						forwardVector = getBackVector();
+					} else {
+						forwardVector = getRightVector();
+					}
+				}
 				break;
 			case InputKey.RotateLeft:
-				updateDirectionVectors(new Vector2(0, Math.PI / 2));
+				updateDirectionVectors(new Vector2(0, -Math.PI / 2));
 				break;
 			case InputKey.RotateRight:
-				updateDirectionVectors(new Vector2(0, -Math.PI / 2));
+				updateDirectionVectors(new Vector2(0, Math.PI / 2));
 				break;
 			case InputKey.RotateUp:
 				updateDirectionVectors(new Vector2(-Math.PI / 2, 0));
@@ -148,8 +201,7 @@
 			default:
 				break;
 		}
-		arrow.setDirection(forwardVector);
-		cubeArrow.setDirection(getUpVector());
+		headArrows[0].setDirection(forwardVector);
 	});
 
 	useTask(() => {
@@ -160,32 +212,27 @@
 
 		if (remainingRotationX !== 0) {
 			if (Math.abs(remainingRotationX) > ROTATION_SPEED) {
-				body.rotateOnWorldAxis(
-					getRightVector(),
-					remainingRotationX > 0 ? ROTATION_SPEED : -ROTATION_SPEED
-				);
+				cameraPoint.rotateX(remainingRotationX > 0 ? ROTATION_SPEED : -ROTATION_SPEED);
 				currentRotationX += remainingRotationX > 0 ? ROTATION_SPEED : -ROTATION_SPEED;
 			} else {
-				body.setRotationFromAxisAngle(getRightVector(), toRotationX);
-				currentRotationX = toRotationX;
+				currentRotationX = toRotationX = Math.abs(toRotationX % (Math.PI * 2));
+				cameraPoint.rotateX(remainingRotationX);
 				isRotating = false;
 			}
-		} else if (remainingRotationY !== 0) {
+		}
+		if (remainingRotationY !== 0) {
 			if (Math.abs(remainingRotationY) > ROTATION_SPEED) {
-				body.rotateOnWorldAxis(
-					getUpVector(),
-					remainingRotationY > 0 ? ROTATION_SPEED : -ROTATION_SPEED
-				);
+				cameraPoint.rotateY(remainingRotationY > 0 ? ROTATION_SPEED : -ROTATION_SPEED);
 				currentRotationY += remainingRotationY > 0 ? ROTATION_SPEED : -ROTATION_SPEED;
 			} else {
-				body.setRotationFromAxisAngle(getUpVector(), toRotationY);
-				currentRotationY = toRotationY;
+				cameraPoint.rotateY(remainingRotationY);
+				currentRotationY = toRotationY = Math.abs(toRotationY % (Math.PI * 2));
 				isRotating = false;
 			}
 		}
 	});
 
-	const { task: bodyTask, stop } = useTask((delta) => {
+	const { task: bodyTask } = useTask((delta) => {
 		const oldPositions = parts.map(({ position }) => position);
 		for (let i = 1; i < parts.length; i++) {
 			parts[i].position.lerp(oldPositions[i - 1], PART_SPEED * delta);
@@ -196,45 +243,21 @@
 		head.position.add(vector.multiplyScalar(PART_SPEED * delta));
 
 		parts[0].position = head.position;
+		colliderHandle.setTranslation(head.position);
 	});
 
 	useTask(
 		() => {
 			const head = parts[0];
-			const maxX = camera.right / camera.zoom / 2 - PART_SIZE;
+			const maxX = FLOOR_X;
 			const minX = -maxX;
 
-			const maxY = camera.top / camera.zoom / 2 - PART_SIZE;
-			const minY = -maxY;
-
-			const horizontalPos = Math.floor(
-				forwardVector.clone().multiply(new Vector3(1, 0, 1)).dot(head.position)
-			);
-
-			if (horizontalPos > maxX) {
-				if (forwardVector.x !== 0) {
-					forwardVector.set(0, 0, head.position.z < 0 ? 1 : -1);
-					head.position.setX(MathUtils.clamp(head.position.x, minX, maxX));
-				} else if (forwardVector.z !== 0) {
-					forwardVector.set(head.position.x < 0 ? 1 : -1, 0, 0);
-					head.position.setZ(MathUtils.clamp(head.position.z, minX, maxX));
-				}
-				arrow.setDirection(forwardVector);
-				return;
+			const forwardPos = Math.floor(forwardVector.clone().dot(head.position));
+			if (forwardPos > maxX) {
+				head.position.clampScalar(minX, maxX);
+				forwardVector.cross(perpendicularVector);
+				headArrows[0].setDirection(forwardVector);
 			}
-			// const verticalPos = Math.floor(
-			// 	forwardVector.clone().multiply(new Vector3(0, 1, 1)).dot(head.position)
-			// );
-			// if (verticalPos > maxY) {
-			// 	if (forwardVector.y !== 0) {
-			// 		forwardVector.set(0, 0, head.position.z < 0 ? 1 : -1);
-			// 		head.position.setY(MathUtils.clamp(head.position.y, minY, maxY));
-			// 	} else if (forwardVector.z !== 0) {
-			// 		forwardVector.set(0, head.position.y < 0 ? 1 : -1, 0);
-			// 		head.position.setZ(MathUtils.clamp(head.position.z, minY, maxY));
-			// 	}
-			// 	arrow.setDirection(forwardVector);
-			// }
 		},
 		{ after: [bodyTask] }
 	);
@@ -242,24 +265,34 @@
 
 <Input />
 
-<T is={camera} position={[0, 0, CAMERA_ZOOM]} makeDefault zoom={CAMERA_ZOOM} />
-<!-- <T.PerspectiveCamera position={[0, 0, 50]} castShadow /> -->
-<T.DirectionalLight position={[0, 0, 25]} intensity={2} castShadow />
+<T is={cameraPoint}>
+	<T is={camera} position={[0, 0, CAMERA_ZOOM]} makeDefault zoom={CAMERA_ZOOM} />
+	<T.DirectionalLight position={[0, 0, CAMERA_ZOOM / 2]} intensity={2} castShadow />
+</T>
 
-<T is={body} position={[0, 0, 0]}>
-	<T.Mesh>
-		<T.BoxGeometry args={[CAMERA_ZOOM / 4, CAMERA_ZOOM / 4, CAMERA_ZOOM / 4]} />
-		<T.MeshStandardMaterial color={'green'} />
-	</T.Mesh>
+{#each worldArrows as arrow}
+	<T is={arrow} />
+{/each}
+<T is={body}>
+	<Box args={[CAMERA_ZOOM / 4, CAMERA_ZOOM / 4, CAMERA_ZOOM / 4]} />
+	<Food edgePoint={CAMERA_ZOOM / 8} />
 	{#each parts as part, index}
-		<T is={part.mesh} position={[part.position.x, part.position.y, part.position.z]}>
-			<T.BoxGeometry args={part.size} />
-			<T.MeshStandardMaterial color={part.color} />
-			<T.AxesHelper scale={5} />
-			{#if index === 0}
-				<T is={arrow} />
-				<T is={cubeArrow} />
-			{/if}
-		</T>
+		{#if index === 0}
+			<T is={part.mesh} position={[part.position.x, part.position.y, part.position.z]}>
+				<T.BoxGeometry args={part.size} />
+				<T.MeshStandardMaterial color={part.color} />
+				{#each headArrows as arrow}
+					<T is={arrow} />
+				{/each}
+			</T>
+		{:else}
+			<T is={part.mesh} position={[part.position.x, part.position.y, part.position.z]}>
+				<T.BoxGeometry args={part.size} />
+				<T.MeshStandardMaterial color={part.color} />
+				{#each headArrows as arrow}
+					<T is={arrow} />
+				{/each}
+			</T>
+		{/if}
 	{/each}
 </T>
