@@ -8,20 +8,18 @@
 		Group,
 		ArrowHelper,
 		Vector2,
-		Object3D
+		Object3D,
+		MathUtils
 	} from 'three';
 	import Input from './input.svelte';
 	import { InputKey, inputStore } from './inputMap';
 	import Box from './box.svelte';
 	import Food from './food.svelte';
-	import { useRapier } from '@threlte/rapier';
+	import { foodPosition, newFood } from './foodStore';
+	import Body from './body.svelte';
+	import { onMount } from 'svelte';
+	import { PART_SIZE, addBodyPart, headPosition, updateBody } from './bodyStore';
 
-	let headCollider;
-	const headColor = new Color('hotpink');
-	const tailColor = new Color('red');
-	const PART_COUNT = 5;
-	const PART_SIZE = 1;
-	const PART_SPEED = 10;
 	const ROTATION_SPEED = 0.02;
 	const CAMERA_ZOOM = 50;
 
@@ -30,13 +28,12 @@
 	const RIGHT = new Vector3(1, 0, 0);
 	const LEFT = new Vector3(-1, 0, 0);
 
-	const FLOOR_X = CAMERA_ZOOM / 8 + PART_SIZE / 2;
+	const FLOOR_X = CAMERA_ZOOM / 8;
 
 	let forwardVector = RIGHT;
 	let perpendicularVector = DOWN;
 
 	const camera = new OrthographicCamera();
-	const body = new Group();
 	const cameraPoint = new Object3D();
 
 	const directionVectors = [
@@ -52,40 +49,6 @@
 	let currentRotationX = 0;
 	let toRotationX = 0;
 	let isRotating = false;
-
-	const headArrows = [
-		new ArrowHelper(forwardVector, new Vector3(), 5, '#41b6e6')
-		// new ArrowHelper(new Vector3(0, 0, -1), new Vector3(), 5, '#41b6a6')
-	];
-	const worldArrows = directionVectors.map(
-		(vec, i) =>
-			new ArrowHelper(
-				vec,
-				new Vector3(),
-				5 + i,
-				new Color('red').lerp(new Color('blue'), (i + 1) / directionVectors.length)
-			)
-	);
-
-	const parts = Array(PART_COUNT)
-		.fill(0)
-		.map((_, i) => {
-			const part = {
-				mesh: new Mesh(),
-				position: new Vector3(i * PART_SIZE, 0, FLOOR_X),
-				size: [PART_SIZE, PART_SIZE, PART_SIZE],
-				color: headColor.clone().lerp(tailColor, i / PART_COUNT)
-			};
-			return part;
-		});
-
-	const { world, rapier } = useRapier();
-	const colliderDesc = rapier.ColliderDesc.cuboid(
-		PART_SIZE / 2,
-		PART_SIZE / 2,
-		PART_SIZE / 2
-	).setSensor(true);
-	const colliderHandle = world.createCollider(colliderDesc, undefined);
 
 	function updateDirectionVectors(newRotation: Vector2) {
 		if (isRotating) return false;
@@ -116,34 +79,33 @@
 			directionVectors[4] = temp;
 		}
 
-		worldArrows.forEach((arrow, i) => arrow.setDirection(directionVectors[i]));
 		toRotationX += newRotation.x;
 		toRotationY += newRotation.y;
 		isRotating = true;
 	}
 
 	function getFrontVector() {
-		return directionVectors[0];
+		return directionVectors[0].clone();
 	}
 
 	function getBackVector() {
-		return directionVectors[5];
+		return directionVectors[5].clone();
 	}
 
 	function getUpVector() {
-		return directionVectors[1];
+		return directionVectors[1].clone();
 	}
 
 	function getRightVector() {
-		return directionVectors[2];
+		return directionVectors[2].clone();
 	}
 
 	function getLeftVector() {
-		return directionVectors[4];
+		return directionVectors[4].clone();
 	}
 
 	function getDownVector() {
-		return directionVectors[3];
+		return directionVectors[3].clone();
 	}
 
 	watch(inputStore, (input) => {
@@ -201,7 +163,6 @@
 			default:
 				break;
 		}
-		headArrows[0].setDirection(forwardVector);
 	});
 
 	useTask(() => {
@@ -233,34 +194,33 @@
 	});
 
 	const { task: bodyTask } = useTask((delta) => {
-		const oldPositions = parts.map(({ position }) => position);
-		for (let i = 1; i < parts.length; i++) {
-			parts[i].position.lerp(oldPositions[i - 1], PART_SPEED * delta);
-		}
-
-		const head = parts[0];
-		const vector = forwardVector.clone();
-		head.position.add(vector.multiplyScalar(PART_SPEED * delta));
-
-		parts[0].position = head.position;
-		colliderHandle.setTranslation(head.position);
+		updateBody(delta, FLOOR_X, forwardVector, perpendicularVector);
 	});
 
 	useTask(
 		() => {
-			const head = parts[0];
-			const maxX = FLOOR_X;
-			const minX = -maxX;
+			const headMax = $headPosition.clone().addScalar(PART_SIZE / 2);
+			const headMin = $headPosition.clone().subScalar(PART_SIZE / 2);
+			const foodMax = $foodPosition.clone().addScalar(PART_SIZE / 2);
+			const foodMin = $foodPosition.clone().subScalar(PART_SIZE / 2);
 
-			const forwardPos = Math.floor(forwardVector.clone().dot(head.position));
-			if (forwardPos > maxX) {
-				head.position.clampScalar(minX, maxX);
-				forwardVector.cross(perpendicularVector);
-				headArrows[0].setDirection(forwardVector);
+			const intersectX = headMax.x >= foodMin.x && headMin.x <= foodMax.x;
+			const intersectY = headMax.y >= foodMin.y && headMin.y <= foodMax.y;
+			const intersectZ = headMax.z >= foodMin.z && headMin.z <= foodMax.z;
+
+			const intersect = intersectX && intersectY && intersectZ;
+			if (intersect) {
+				newFood(FLOOR_X);
+				addBodyPart(forwardVector, FLOOR_X);
 			}
 		},
-		{ after: [bodyTask] }
+		{ after: bodyTask }
 	);
+
+	onMount(() => {
+		newFood(CAMERA_ZOOM / 8);
+		addBodyPart(forwardVector, CAMERA_ZOOM / 8);
+	});
 </script>
 
 <Input />
@@ -270,29 +230,8 @@
 	<T.DirectionalLight position={[0, 0, CAMERA_ZOOM / 2]} intensity={2} castShadow />
 </T>
 
-{#each worldArrows as arrow}
-	<T is={arrow} />
-{/each}
-<T is={body}>
+<T.Group>
 	<Box args={[CAMERA_ZOOM / 4, CAMERA_ZOOM / 4, CAMERA_ZOOM / 4]} />
-	<Food edgePoint={CAMERA_ZOOM / 8} />
-	{#each parts as part, index}
-		{#if index === 0}
-			<T is={part.mesh} position={[part.position.x, part.position.y, part.position.z]}>
-				<T.BoxGeometry args={part.size} />
-				<T.MeshStandardMaterial color={part.color} />
-				{#each headArrows as arrow}
-					<T is={arrow} />
-				{/each}
-			</T>
-		{:else}
-			<T is={part.mesh} position={[part.position.x, part.position.y, part.position.z]}>
-				<T.BoxGeometry args={part.size} />
-				<T.MeshStandardMaterial color={part.color} />
-				{#each headArrows as arrow}
-					<T is={arrow} />
-				{/each}
-			</T>
-		{/if}
-	{/each}
-</T>
+	<Food />
+	<Body />
+</T.Group>
