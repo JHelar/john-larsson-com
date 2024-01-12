@@ -31,19 +31,20 @@ export function addBodyPart(forwardVector: Vector3, edgePoint: number) {
 }
 
 function updateBodyPosition(delta: number, forwardVector: Vector3) {
-	const oldPositions = bodyParts.map((mesh) => mesh.position);
-	for (let i = 1; i < bodyParts.length; i++) {
-		const oldPosition = oldPositions[i - 1];
-		const a = oldPosition.clone().sub(bodyParts[i].position);
-		const magnitude = Math.sqrt(Math.pow(a.x, 2) + Math.pow(a.y, 2) + Math.pow(a.z, 2));
-		if (magnitude <= PART_SIZE || magnitude == 0) {
-			continue;
-		}
-		bodyParts[i].position.add(a.divideScalar(magnitude).multiplyScalar(PART_SIZE));
-	}
+	const threshold = PART_SIZE * 0.9;
 
 	const vector = forwardVector.clone();
 	bodyParts[0].position.add(vector.multiplyScalar(PART_SPEED * delta));
+	for (let i = 1; i < bodyParts.length; i++) {
+		const oldPosition = bodyParts[i - 1].position;
+		const a = oldPosition.clone().sub(bodyParts[i].position);
+		const magnitude = Math.sqrt(Math.pow(a.x, 2) + Math.pow(a.y, 2) + Math.pow(a.z, 2));
+		if (magnitude <= threshold || magnitude == 0) {
+			continue;
+		}
+
+		bodyParts[i].position.add(a.normalize().multiplyScalar(PART_SPEED * delta));
+	}
 }
 
 function wrapBody(edgePoint: number, forwardVector: Vector3, perpendicularVector: Vector3) {

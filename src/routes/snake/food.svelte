@@ -3,9 +3,7 @@
 	import { FOOD_SIZE, foodPosition } from './foodStore';
 </script>
 
-<T.Group position.x={$foodPosition.x} position.y={$foodPosition.y} position.z={$foodPosition.z}>
-	<T.Mesh>
-		<T.BoxGeometry args={[FOOD_SIZE, FOOD_SIZE, FOOD_SIZE]} />
-		<T.MeshBasicMaterial color="red" />
-	</T.Mesh>
-</T.Group>
+<T.Mesh position.x={$foodPosition.x} position.y={$foodPosition.y} position.z={$foodPosition.z}>
+	<T.BoxGeometry args={[FOOD_SIZE, FOOD_SIZE, FOOD_SIZE]} />
+	<T.MeshBasicMaterial color="red" />
+</T.Mesh>

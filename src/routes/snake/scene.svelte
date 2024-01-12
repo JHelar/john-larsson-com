@@ -1,16 +1,6 @@
 <script lang="ts">
 	import { T, useTask, watch } from '@threlte/core';
-	import {
-		Color,
-		Mesh,
-		OrthographicCamera,
-		Vector3,
-		Group,
-		ArrowHelper,
-		Vector2,
-		Object3D,
-		MathUtils
-	} from 'three';
+	import { OrthographicCamera, Vector3, Vector2, Object3D } from 'three';
 	import Input from './input.svelte';
 	import { InputKey, inputStore } from './inputMap';
 	import Box from './box.svelte';
@@ -108,45 +98,81 @@
 		return directionVectors[3].clone();
 	}
 
+	function getCurrentFace() {
+		const topDistance = getUpVector().dot($headPosition);
+		const bottomDistanace = getDownVector().dot($headPosition);
+		const leftDistance = getLeftVector().dot($headPosition);
+		const rightDistance = getRightVector().dot($headPosition);
+		const frontDistance = getFrontVector().dot($headPosition);
+		const backDistance = getBackVector().dot($headPosition);
+
+		const maxDistance = Math.max(
+			topDistance,
+			bottomDistanace,
+			leftDistance,
+			rightDistance,
+			frontDistance,
+			backDistance
+		);
+
+		if (maxDistance === topDistance) return 'top';
+		if (maxDistance === bottomDistanace) return 'bottom';
+		if (maxDistance === leftDistance) return 'left';
+		if (maxDistance === rightDistance) return 'right';
+		if (maxDistance === frontDistance) return 'front';
+
+		return 'back';
+	}
+	type CubeFace = 'top' | 'bottom' | 'left' | 'right' | 'front' | 'back';
+
+	type DirectionMap = Partial<
+		Record<InputKey, Record<CubeFace, [perpendicular: () => Vector3, forward: () => Vector3]>>
+	>;
+	const DIRECTION_MAP = {
+		[InputKey.Up]: {
+			front: [getRightVector, getUpVector],
+			back: [getLeftVector, getUpVector],
+			left: [getFrontVector, getUpVector],
+			right: [getBackVector, getUpVector],
+			top: [getRightVector, getBackVector],
+			bottom: [getRightVector, getBackVector]
+		},
+		[InputKey.Down]: {
+			front: [getLeftVector, getDownVector],
+			back: [getRightVector, getDownVector],
+			left: [getBackVector, getDownVector],
+			right: [getFrontVector, getDownVector],
+			top: [getLeftVector, getFrontVector],
+			bottom: [getLeftVector, getFrontVector]
+		},
+		[InputKey.Left]: {
+			front: [getUpVector, getLeftVector],
+			back: [getDownVector, getLeftVector],
+			left: [getUpVector, getBackVector],
+			right: [getUpVector, getFrontVector],
+			top: [getBackVector, getLeftVector],
+			bottom: [getFrontVector, getLeftVector]
+		},
+		[InputKey.Right]: {
+			front: [getDownVector, getRightVector],
+			back: [getUpVector, getRightVector],
+			left: [getDownVector, getFrontVector],
+			right: [getDownVector, getBackVector],
+			top: [getLeftVector, getRightVector],
+			bottom: [getBackVector, getRightVector]
+		}
+	} satisfies DirectionMap;
+
 	watch(inputStore, (input) => {
 		switch (input) {
 			case InputKey.Up:
-				perpendicularVector = getRightVector();
-				if (forwardVector.equals(getFrontVector()) || forwardVector.equals(getBackVector())) {
-					forwardVector = getBackVector();
-				} else {
-					forwardVector = getUpVector();
-				}
-				break;
 			case InputKey.Down:
-				{
-					perpendicularVector = getLeftVector();
-					if (forwardVector.equals(getFrontVector()) || forwardVector.equals(getBackVector())) {
-						forwardVector = getFrontVector();
-					} else {
-						forwardVector = getDownVector();
-					}
-				}
-				break;
 			case InputKey.Left:
-				{
-					perpendicularVector = getUpVector();
-					if (forwardVector.equals(getFrontVector()) || forwardVector.equals(getBackVector())) {
-						forwardVector = getFrontVector();
-					} else {
-						forwardVector = getLeftVector();
-					}
-				}
-				break;
 			case InputKey.Right:
-				{
-					perpendicularVector = getDownVector();
-					if (forwardVector.equals(getFrontVector()) || forwardVector.equals(getBackVector())) {
-						forwardVector = getBackVector();
-					} else {
-						forwardVector = getRightVector();
-					}
-				}
+				const currentFace = getCurrentFace();
+				const [getPerpendicularVector, getForwardVector] = DIRECTION_MAP[input][currentFace];
+				perpendicularVector = getPerpendicularVector();
+				forwardVector = getForwardVector();
 				break;
 			case InputKey.RotateLeft:
 				updateDirectionVectors(new Vector2(0, -Math.PI / 2));
