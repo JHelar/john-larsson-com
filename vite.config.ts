@@ -5,5 +5,8 @@ export default defineConfig({
 	plugins: [sveltekit()],
 	build: {
 		assetsInlineLimit: 0
+	},
+	ssr: {
+		noExternal: ['three']
 	}
 });
