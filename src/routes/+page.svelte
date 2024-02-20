@@ -47,7 +47,35 @@
 			>
 		</li>
 	</ol>
+</div>
+<div class="container mt-6">
+	<h2 class="text-2xl font-semibold">Hobby projects</h2>
 	<p class="mt-6">
-		Check out my <a href="https://github.com/JHelar">GitHub</a> profile to see all my public projects.
+		This list contains some of the latest projects that I have been working on outside my
+		professional work.
+	</p>
+	<ol class="list-decimal list-inside ml-8 mt-6">
+		<li>
+			<a href="https://github.com/JHelar/dumbo">Dumbo</a> <small>[A work in progress]</small> a dive
+			into a templating engine for golang backends to render html with components in focus.
+		</li>
+		<li>
+			<a href="http://ec2-99-81-179-160.eu-west-1.compute.amazonaws.com">Dumbbell</a> a fitness web
+			app written with <a href="https://go.dev/">go, and go templates</a>,
+			<a href="http://tailwindcss.com">Tailwind</a>
+			and <a href="https://htmx.org/">HTMX</a>.<br />
+			Hosted on AWS EC2 using <a href="https://www.terraform.io/">Terraform</a> for deployment.
+		</li>
+		<li>
+			3D Snake written using
+			<a href="https://threejs.org/">three.js</a>
+			with the svelte wrapper
+			<a href="https://threlte.xyz/">threlte</a>.<br /> <a href="/snake">Click here to play</a>
+			<small>[A work in progress, not finished]</small>.
+		</li>
+	</ol>
+	<p class="mt-6">
+		Check out the source code and other project on my <a href="https://github.com/JHelar">GitHub</a
+		>.
 	</p>
 </div>
