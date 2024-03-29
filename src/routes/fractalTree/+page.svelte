@@ -14,7 +14,7 @@
 
 <Head title="Fractal tree" description="An interactive simulation of a fractral tree" />
 
-<div class="container mb-4 flex flex-col">
+<div class="container pt-6 mb-4 flex flex-col">
 	<div class="mb-4">
 		<h1 class="text-2xl font-semibold mb-2">Fractal tree</h1>
 		<p class="text-sm">Update the different values in order to get different results.</p>
