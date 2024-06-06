@@ -24,12 +24,6 @@
 		in Typescript to a nose dive into
 		<a href="https://github.com/JHelar/NotesApp">Kotlin multiplatform</a>.
 	</p>
-	<p class="mt-6">
-		I try to always keep myself in the loop when it comes to the frontend and accessability, but
-		also when it comes to compiled languages and especially when those two worlds meet. As I see
-		that the frontend will soon move more towards the backend and leave the heavy world of
-		javascript centric applications.
-	</p>
 	<ul class="mt-6">
 		<li><a href="https://www.linkedin.com/in/john-larsson-8ba758b3/">LinkedIn</a></li>
 		<li><a href="https://github.com/JHelar">GitHub</a></li>
