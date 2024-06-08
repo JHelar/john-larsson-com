@@ -1,7 +1,9 @@
-export type TileType = 'empty' | 'mine' | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8;
-export type TileProps = {
+export type TileType = 'mine' | number;
+export type TileBase = {
 	index: number;
-	type: TileType;
-	size: [width: number, height: number, depth: number];
 	position: [x: number, y: number, z: number];
+	size: [width: number, height: number, depth: number];
+};
+export type Tile = TileBase & {
+	type: TileType;
 };

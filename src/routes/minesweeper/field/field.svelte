@@ -1,7 +1,8 @@
 <script>
 	import { T } from '@threlte/core';
-	import { fieldSize, openTile, revealedTiles, tiles } from './fieldStore';
+	import { fieldSize, tiles } from './fieldStore';
 	import Tile from './tile.svelte';
+	import { gameTileTypes, openTile, revealedTiles } from '../gameLogic';
 </script>
 
 <T.Mesh>
@@ -13,8 +14,8 @@
 	<Tile
 		position={tile.position}
 		size={tile.size}
-		type={tile.type}
-		reveal={$revealedTiles.includes(tile.index)}
+		type={$gameTileTypes.at(tile.index) ?? 0}
+		reveal={$revealedTiles.find(({ tileIndex }) => tile.index === tileIndex)}
 		on:click={() => openTile(tile.index)}
 	/>
 {/each}
