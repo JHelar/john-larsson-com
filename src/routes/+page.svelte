@@ -41,7 +41,7 @@
 		<li>
 			Design system engineer at <a href="https://telia.se">Telia</a>, created a design system to be
 			used along side their Figma instance to automatically synchronize and manage design tokens and
-			components to a multiplaform environment.
+			components to a multi platform environment.
 		</li>
 		<li>
 			Fullstack developer at <a href="https://telia.se">Telia</a>, worked for their streaming
@@ -56,26 +56,6 @@
 			Swedish municipals and private companies to create accessible websites and applications.
 		</li>
 	</ol>
-	<h3 class="mt-6">Tech that I am currently working with</h3>
-	<ul class="list-disc ml-8 mt-6">
-		<li>React</li>
-		<li>React Native</li>
-		<li>Vitest, Jest</li>
-		<li>Design Systems development</li>
-		<li>Maestro</li>
-		<li>NodeJS</li>
-		<li>MongoDB</li>
-		<li>GitHub</li>
-	</ul>
-	<h3 class="mt-6">Tach that I am working on in my side projects</h3>
-	<ul class="list-disc ml-8 mt-6">
-		<li>golang</li>
-		<li>rust</li>
-		<li>HTMX</li>
-		<li>SSE</li>
-		<li>Kotlin</li>
-		<li>And much more...</li>
-	</ul>
 </div>
 <div class="container mt-6">
 	<h2 class="text-2xl font-semibold">Hobby projects</h2>
