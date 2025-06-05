@@ -10,7 +10,8 @@
 		I am a senior fullstack developer (with a focus on the frontend) from Sweden, where I am
 		currently working on a Swedish white label SaaS product for the energy and smart home sector in
 		the Nordics.
-		<br />
+	</p>
+	<p class="mt-2">
 		Current focus is to to transform the React Native based white label application to be accessible
 		and compliant with the WCAG AA criteria.
 	</p>
