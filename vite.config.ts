@@ -8,5 +8,12 @@ export default defineConfig({
 	},
 	ssr: {
 		noExternal: ['three']
+	},
+	css: {
+		preprocessorOptions: {
+			scss: {
+				api: 'modern-compiler'
+			}
+		}
 	}
 });

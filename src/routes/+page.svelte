@@ -8,8 +8,11 @@
 	<h1 class="text-2xl font-semibold">Hello, I'm John!</h1>
 	<p class="mt-6">
 		I am a senior fullstack developer (with a focus on the frontend) from Sweden, where I am
-		currently working as a consultant at a Swedish white label SaaS product for the energy and smart
-		home sector in the Nordics.
+		currently working on a Swedish white label SaaS product for the energy and smart home sector in
+		the Nordics.
+		<br />
+		Current focus is to to transform the React Native based white label application to be accessible
+		and compliant with the WCAG AA criteria.
 	</p>
 	<p class="mt-6">
 		I enjoy everything from playing piano, running marathons and starting new code projects that has
@@ -19,10 +22,9 @@
 		These projects can span anywhere from <a href="https://github.com/JHelar/yaff"
 			>creating a HTML template engine</a
 		>
-		in Rust (or why not in <a href="https://github.com/JHelar/dumbo">golang?</a>), a
-		<a href="https://github.com/JHelar/om">functional object mapper Library</a>
-		in Typescript to a nose dive into
-		<a href="https://github.com/JHelar/NotesApp">Kotlin multiplatform</a>.
+		in Rust (or why not in <a href="https://github.com/JHelar/dumbo">golang?</a>), to my latest deep
+		dive into AI driven translations directly generated from
+		<a href="https://github.com/JHelar/translang">Figma design links</a>.
 	</p>
 	<ul class="mt-6">
 		<li><a href="https://www.linkedin.com/in/john-larsson-8ba758b3/">LinkedIn</a></li>
@@ -31,8 +33,11 @@
 </div>
 <div class="container mt-6">
 	<h2 class="text-2xl font-semibold">Work</h2>
-	<p class="mt-6">Some of my past work experiences.</p>
+	<h3 class="mt-6">Some of my past work experiences.</h3>
 	<ol class="list-decimal ml-8 mt-6">
+		<li>
+			Senior fullstack developer, consultant at <a href="skry.se">Skry</a>
+		</li>
 		<li>
 			Design system engineer at <a href="https://telia.se">Telia</a>, created a design system to be
 			used along side their Figma instance to automatically synchronize and manage design tokens and
@@ -51,6 +56,26 @@
 			Swedish municipals and private companies to create accessible websites and applications.
 		</li>
 	</ol>
+	<h3 class="mt-6">Tech that I am currently working with</h3>
+	<ul class="list-disc ml-8 mt-6">
+		<li>React</li>
+		<li>React Native</li>
+		<li>Vitest, Jest</li>
+		<li>Design Systems development</li>
+		<li>Maestro</li>
+		<li>NodeJS</li>
+		<li>MongoDB</li>
+		<li>GitHub</li>
+	</ul>
+	<h3 class="mt-6">Tach that I am working on in my side projects</h3>
+	<ul class="list-disc ml-8 mt-6">
+		<li>golang</li>
+		<li>rust</li>
+		<li>HTMX</li>
+		<li>SSE</li>
+		<li>Kotlin</li>
+		<li>And much more...</li>
+	</ul>
 </div>
 <div class="container mt-6">
 	<h2 class="text-2xl font-semibold">Hobby projects</h2>
@@ -59,6 +84,12 @@
 		professional work.
 	</p>
 	<ol class="list-decimal ml-8 mt-6">
+		<li>
+			<a href="https://github.com/JHelar/translang">Translang</a>
+			<small>[A work in progress]</small> a translation webb platform service that extracts strings from
+			a given Figma design, uses OpenAI to generate the translations and copy keys for the strings within
+			the design.
+		</li>
 		<li>
 			<a href="https://github.com/JHelar/dumbo">Dumbo</a> <small>[A work in progress]</small> a dive
 			into a templating engine for golang backends to render html with components in focus.
