@@ -45,31 +45,36 @@
 
 	square.holes.push(tileHole);
 
-	const boardTiles = Array.from(
-		{ length: TILES },
-		(_, i) =>
-			new Vector3(
-				-boardSize / 2 + tileSize / 2 + (i % TILES_PER_ROW) * tileSize,
-				-boardSize / 2 + tileSize / 2 + Math.floor(i / TILES_PER_ROW) * tileSize,
-				1
-			)
-	);
+	let highlightColumn = -1;
+	$: boardTiles = Array.from({ length: TILES }, (_, i) => ({
+		position: new Vector3(
+			-boardSize / 2 + tileSize / 2 + (i % TILES_PER_ROW) * tileSize,
+			-boardSize / 2 + tileSize / 2 + Math.floor(i / TILES_PER_ROW) * tileSize,
+			1
+		),
+		highlight: i % TILES_PER_ROW === highlightColumn
+	}));
 
 	function pointerEnter(event: { point: Vector3 }) {
-		const point = event.point.clone().divideScalar(tileSize);
-		console.log(point);
+		// Interpolate range -2 - 2 to 0 - TILES_PER_ROW
+		const point = event.point
+			.clone()
+			.divideScalar(tileSize)
+			.floor()
+			.addScalar(TILES_PER_ROW - 2);
+		highlightColumn = point.x;
 	}
 </script>
 
-<T.Mesh on:pointerenter={pointerEnter}>
+<T.Mesh on:pointermove={pointerEnter}>
 	<T.PlaneGeometry args={[boardSize, boardSize]} />
 	<T.MeshBasicMaterial color="lightgray" />
 </T.Mesh>
 
 {#each boardTiles as boardTile}
-	<T.Mesh position={boardTile.toArray()}>
+	<T.Mesh position={boardTile.position.toArray()}>
 		<T.ShapeGeometry args={[square]} />
-		<T.MeshBasicMaterial color="gray" />
+		<T.MeshBasicMaterial color={boardTile.highlight ? 'green' : 'gray'} />
 	</T.Mesh>
 {/each}
 
