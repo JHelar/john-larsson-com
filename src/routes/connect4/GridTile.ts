@@ -1,7 +1,7 @@
-import { Color, MeshBasicMaterial, Path, Shape, ShapeGeometry, Vector3 } from 'three';
+import { Color, ExtrudeGeometry, MeshBasicMaterial, Path, Shape, ShapeGeometry } from 'three';
 import { Tile } from './Tile';
+import { PlayerTile } from './PlayerTile';
 
-const GRID_TILE_Z = 1;
 const HOLE_RATIO = 0.85;
 
 type GridTileOptions = {
@@ -10,11 +10,10 @@ type GridTileOptions = {
 };
 
 export class GridTile extends Tile {
+	public static DEPTH = 10;
 	private static SHAPE: Shape;
-	private static HIGHLIGHT_COLOR = new Color('green');
-	private static REGULAR_COLOR = new Color('gray');
-
-	private _highlighted!: boolean;
+	private static HIGHLIGHT_COLOR = new Color(Color.NAMES.lightblue);
+	private static REGULAR_COLOR = new Color(Color.NAMES.blue);
 
 	constructor(tileIndex: number, options: GridTileOptions) {
 		super({
@@ -23,10 +22,8 @@ export class GridTile extends Tile {
 			row: Math.floor(tileIndex / Tile.TILES_PER_ROW)
 		});
 
-		this._highlighted = false;
-
 		this.updatePosition();
-		this.position.setZ(GRID_TILE_Z);
+		this.position.setZ(PlayerTile.DEPTH + GridTile.DEPTH);
 
 		this.initializeGeometry();
 		this.initializeMaterial();
@@ -53,7 +50,11 @@ export class GridTile extends Tile {
 			GridTile.SHAPE = square;
 		}
 
-		this.geometry = new ShapeGeometry(GridTile.SHAPE);
+		this.geometry = new ExtrudeGeometry(GridTile.SHAPE, {
+			depth: GridTile.DEPTH,
+			bevelEnabled: true,
+			bevelSize: 1
+		});
 	}
 
 	public highlight(column: number) {

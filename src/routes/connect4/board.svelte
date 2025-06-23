@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { T, useTask } from '@threlte/core';
-	import { Vector3 } from 'three';
+	import { Color, Vector3 } from 'three';
 	import type { Game } from './Game';
 
 	export let game: Game;
@@ -21,7 +21,7 @@
 
 <T.Mesh on:pointermove={pointerMove} on:click={onClick}>
 	<T.PlaneGeometry args={[game.options.boardSize, game.options.boardSize]} />
-	<T.MeshBasicMaterial color="lightgray" />
+	<T.MeshBasicMaterial color={Color.NAMES.darkblue} />
 </T.Mesh>
 
 {#each game.gridTiles as gridTile}

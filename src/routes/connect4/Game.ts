@@ -10,9 +10,25 @@ type GameOptions = {
 	tileSize: number;
 };
 
-const HORIZONTAL_LINE = new Vector2(1, 0);
-const VERTICAL_LINE = new Vector2(0, 1);
-const DIAGONAL_LINE = new Vector2(1, 1);
+const VERTICAL_LINE_1 = new Vector2(0, 1);
+const VERTICAL_LINE_2 = new Vector2(0, -1);
+const HORIZONTAL_LINE_1 = new Vector2(1, 0);
+const HORIZONTAL_LINE_2 = new Vector2(-1, 0);
+const DIAGONAL_LINE_1 = new Vector2(1, 1);
+const DIAGONAL_LINE_2 = new Vector2(-1, 1);
+const DIAGONAL_LINE_3 = new Vector2(1, -1);
+const DIAGONAL_LINE_4 = new Vector2(-1, -1);
+
+const LINES = [
+	VERTICAL_LINE_1,
+	VERTICAL_LINE_2,
+	HORIZONTAL_LINE_1,
+	HORIZONTAL_LINE_2,
+	DIAGONAL_LINE_1,
+	DIAGONAL_LINE_2,
+	DIAGONAL_LINE_3,
+	DIAGONAL_LINE_4
+];
 
 const GameState = {
 	Running: 'GameState:Running',
@@ -91,6 +107,7 @@ export class Game {
 			const boardIndex = Tile.boardIndexFromPosition(
 				from.boardPosition.clone().add(direction.clone().multiplyScalar(step))
 			);
+			if (boardIndex === null) return null;
 			if (board[boardIndex]?.player !== from.player) return null;
 			playersIndices.push(boardIndex);
 		}
@@ -101,13 +118,13 @@ export class Game {
 	private checkPlayer(boardIndex: number) {
 		const board = get(this.board);
 		const playerTile = board[boardIndex];
-		const horizontal = this.checkLine(playerTile, HORIZONTAL_LINE);
-		const vertical = this.checkLine(playerTile, VERTICAL_LINE);
-		const diagonal = this.checkLine(playerTile, DIAGONAL_LINE);
 
-		const winner = horizontal || vertical || diagonal;
-		if (winner) {
-			const indices = new Set([...(horizontal ?? []), ...(vertical ?? []), ...(diagonal ?? [])]);
+		const lineIndices = LINES.map((line) => this.checkLine(playerTile, line))
+			.filter((indices) => indices !== null)
+			.flat();
+
+		if (lineIndices.length) {
+			const indices = new Set(lineIndices);
 			return Array.from(indices.values());
 		}
 

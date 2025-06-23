@@ -1,9 +1,9 @@
-import { CircleGeometry, Color, MeshBasicMaterial, Vector3 } from 'three';
+import { CircleGeometry, Color, CylinderGeometry, MeshBasicMaterial, Vector3 } from 'three';
 import { Tile } from './Tile';
-import { Game } from './Game';
 import { Timer } from './Timer';
 
 export type PlayerNumber = number;
+const PLAYER_TILE_Z = 0.5;
 
 export type PlayerTileState = 'idle' | 'falling' | 'settled' | 'winner';
 
@@ -18,17 +18,19 @@ export type PlayerTileOptions = {
 
 export class PlayerTile extends Tile {
 	public static GRAVITY = 10;
+	public static DEPTH = 10;
 
 	private static FALL_DIRECTION = new Vector3(0, -1, 0);
 	private static P1_COLOR = new Color(Color.NAMES.gold);
-	private static P2_COLOR = new Color(Color.NAMES.azure);
-	private static WINNER_COLOR = new Color(Color.NAMES.rebeccapurple);
+	private static P2_COLOR = new Color(Color.NAMES.firebrick);
+	private static WINNER_COLOR = new Color(Color.NAMES.white);
 
 	public player!: PlayerNumber;
 	public state: PlayerTileState;
 
 	private velocity: Vector3;
 	private destination: Vector3;
+	private isWinner: boolean;
 
 	constructor({ boardSize, column, player, tileSize, toRow }: PlayerTileOptions) {
 		super({
@@ -42,8 +44,12 @@ export class PlayerTile extends Tile {
 		this.player = player;
 		this.velocity = new Vector3(0, 0, 0);
 		this.state = 'falling';
+		this.isWinner = false;
 
 		this._boardPosition.y = toRow;
+		this.position.setZ(PLAYER_TILE_Z);
+		this.rotateOnAxis(new Vector3(1, 0, 0), Math.PI / 2);
+
 		this.destination = new Vector3(
 			this.toCanvasCoordinate(column),
 			this.toCanvasCoordinate(toRow),
@@ -60,7 +66,12 @@ export class PlayerTile extends Tile {
 	}
 
 	private initializeGeometry() {
-		this.geometry = new CircleGeometry(this.tileSize / 2);
+		this.geometry = new CylinderGeometry(
+			this.tileSize / 2,
+			this.tileSize / 2,
+			PlayerTile.DEPTH,
+			25
+		);
 	}
 
 	private pingPong(time: number, length: number) {
@@ -77,7 +88,7 @@ export class PlayerTile extends Tile {
 	}
 
 	public setWinner() {
-		this.state = 'winner';
+		this.isWinner = true;
 	}
 
 	public update(delta: number) {
@@ -92,10 +103,10 @@ export class PlayerTile extends Tile {
 			}
 		}
 
-		if (this.state === 'winner') {
+		if (this.isWinner) {
 			this.material.color = this.getPlayerColor().lerp(
 				PlayerTile.WINNER_COLOR,
-				this.pingPong(Timer.time, 1)
+				this.pingPong(Timer.time, 0.5)
 			);
 		}
 	}

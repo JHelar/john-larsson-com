@@ -4,6 +4,7 @@
 	import { interactivity } from '@threlte/extras';
 	import { newGame } from './gameLogic';
 	import { Vector4 } from 'three';
+	import { PlayerTile } from './PlayerTile';
 
 	const { size } = useThrelte();
 
@@ -15,6 +16,17 @@
 	interactivity();
 </script>
 
-<T.OrthographicCamera args={[...cameraPosition.toArray(), 0.1, 1000]} position.z={10} makeDefault />
-<T.DirectionalLight position={[0, 0, 10]} />
+<!-- <T.OrthographicCamera args={[...cameraPosition.toArray(), 0.1, 1000]} position.z={10} makeDefault /> -->
+<T.PerspectiveCamera
+	makeDefault
+	position={[-zoom * aspect, 0, zoom * aspect * 3]}
+	fov={90}
+	on:create={({ ref }) => {
+		ref.lookAt(0, 0, 0);
+	}}
+/>
+<T.DirectionalLight
+	position={[-$size.height / 2, -$size.height / 2, zoom]}
+	rotation={[Math.PI / 4, 0, Math.PI / 2]}
+/>
 <Board {game} />

@@ -57,6 +57,14 @@ export class Tile extends Mesh<BufferGeometry, MeshBasicMaterial, Object3DEventM
 	}
 
 	public static boardIndexFromPosition(position: Vector2) {
-		return position.x + position.y * Tile.TILES_PER_ROW;
+		const row = position.y;
+		const column = position.x;
+
+		if (row >= Tile.TILES_PER_ROW) return null;
+		if (row < 0) return null;
+		if (column >= Tile.TILES_PER_ROW) return null;
+		if (column < 0) return null;
+
+		return column + row * Tile.TILES_PER_ROW;
 	}
 }
