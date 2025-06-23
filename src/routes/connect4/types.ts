@@ -6,3 +6,7 @@ export type TileProps = {
 	destination: Vector3;
 	player: 1 | 0;
 };
+
+export type GameOptions = {
+	boardSize: number;
+};
