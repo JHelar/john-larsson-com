@@ -8,7 +8,7 @@
 
 	const { size } = useThrelte();
 
-	const zoom = 100;
+	const zoom = 200;
 	const aspect = $size.width / $size.height;
 	const cameraPosition = new Vector4(-aspect * zoom, aspect * zoom, zoom, -zoom);
 	const game = newGame({ boardSize: $size.height });

@@ -18,6 +18,16 @@
 			description:
 				"Implementation of Conway's Game of Life, with customizable parameters and grid cell editor.",
 			url: '/gameOfLife'
+		},
+		{
+			name: 'Connect 4',
+			description: 'Connect 4 using three js (WiP).',
+			url: '/connect4'
+		},
+		{
+			name: 'Minesweeper',
+			description: 'Minesweeper using three js (WiP).',
+			url: '/minesweeper'
 		}
 	];
 </script>
@@ -26,11 +36,12 @@
 
 <div class="container pt-6">
 	<h1 class="text-2xl font-semibold">Hobby projects</h1>
-	<div class="grid auto-cols-fr grid-flow-col gap-4 mt-4">
+	<p class="text-xl mt-2">Graphical web projects in various states of completion</p>
+	<div class="flex flex-row flex-wrap gap-4 mt-4">
 		{#each projects as project}
 			<a
 				href={project.url}
-				class="block max-w-sm p-6 bg-white border border-gray-200 rounded-lg shadow hover:bg-gray-100 dark:bg-gray-800 dark:border-gray-700 dark:hover:bg-gray-700"
+				class="block max-w-sm flex-1 p-6 bg-white border border-gray-200 rounded-lg shadow hover:bg-gray-100 dark:bg-gray-800 dark:border-gray-700 dark:hover:bg-gray-700"
 			>
 				<h2 class="mb-2 text-2xl font-bold tracking-tight text-gray-900 dark:text-white">
 					{project.name}
