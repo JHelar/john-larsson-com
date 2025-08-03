@@ -20,12 +20,12 @@
 		a lifespan of maximum one month (the common curse of a developer it seems!).
 	</p>
 	<p>
-		These projects can span anywhere from <a href="https://github.com/JHelar/yaff"
-			>creating a HTML template engine</a
-		>
-		in Rust (or why not in <a href="https://github.com/JHelar/dumbo">golang?</a>), to my latest deep
-		dive into AI driven translations directly generated from
-		<a href="https://github.com/JHelar/translang">Figma design links</a>.
+		These project can span from deep dives into AI driven translations directly generated from
+		<a href="https://github.com/JHelar/translang">Figma design links</a>, to
+		<a href="https://github.com/JHelar/yaff">creating a HTML template engine</a>
+		in Rust (or why not in <a href="https://github.com/JHelar/dumbo">golang?</a>). Or lately
+		creating my own published typescript utility library such as
+		<a href="https://www.npmjs.com/package/@jhel/iterup">iterup</a> to make it easier to handle iterables.
 	</p>
 	<ul class="mt-6">
 		<li><a href="https://www.linkedin.com/in/john-larsson-8ba758b3/">LinkedIn</a></li>
@@ -66,6 +66,14 @@
 	</p>
 	<ol class="list-decimal ml-8 mt-6">
 		<li>
+			<a href="https://github.com/JHelar/iterup">iterup</a>
+			is a TypeScript async iterator utility library that provides lazy evaluation for efficient data
+			processing. Published and available via
+			<a href="https://www.npmjs.com/package/@jhel/iterup">npm</a>
+			or
+			<a href="https://jsr.io/@jhel/iterup">jsr</a> package regestries.
+		</li>
+		<li>
 			<a href="https://github.com/JHelar/translang">Translang</a>
 			<small>[A work in progress]</small> a translation webb platform service that extracts strings from
 			a given Figma design, uses OpenAI to generate the translations and copy keys for the strings within
@@ -83,11 +91,10 @@
 			<a href="https://www.terraform.io/">Terraform</a> to manage and deploy the application to AWS EC2.
 		</li>
 		<li>
-			<a href="/snake">3D Snake</a> written using
+			<a href="/projects">Web rendering projects</a> written in
 			<a href="https://threejs.org/">three.js</a>
 			with the svelte wrapper
-			<a href="https://threlte.xyz/">threlte</a>
-			<small>[A work in progress]</small>.
+			<a href="https://threlte.xyz/">threlte</a>.
 		</li>
 	</ol>
 	<p class="mt-6">
