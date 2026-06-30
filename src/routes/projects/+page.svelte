@@ -3,6 +3,12 @@
 
 	const projects = [
 		{
+			name: 'Boids algorithm',
+			description:
+				'Implementation of the boids algorithm, simulating bodies that moves in a flock.',
+			url: '/boids'
+		},
+		{
 			name: 'Fractal tree',
 			description:
 				'Implementation of an animated fractal tree with controls to customize the appearance.',

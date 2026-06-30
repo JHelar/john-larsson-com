@@ -12,20 +12,24 @@
 		the Nordics.
 	</p>
 	<p class="mt-2">
-		Current focus is to to transform the React Native based white label application to be accessible
-		and compliant with the WCAG AA criteria.
+		Focusing on how to integrate AI workflows into a legacy product, and also how to leverage AI in
+		a complete new product where limitations of legacy is not present. Two sides with two completely
+		different outcomes.
 	</p>
 	<p class="mt-6">
-		I enjoy everything from playing piano, running marathons and starting new code projects that has
-		a lifespan of maximum one month (the common curse of a developer it seems!).
+		Besides work I enjoy everything from playing piano, running marathons and starting new code
+		projects that has a lifespan of maximum one month (the common curse of a developer it seems!).
 	</p>
 	<p>
-		These project can span from deep dives into AI driven translations directly generated from
-		<a href="https://github.com/JHelar/translang">Figma design links</a>, to
-		<a href="https://github.com/JHelar/yaff">creating a HTML template engine</a>
-		in Rust (or why not in <a href="https://github.com/JHelar/dumbo">golang?</a>). Or lately
-		creating my own published typescript utility library such as
-		<a href="https://www.npmjs.com/package/@jhel/iterup">iterup</a> to make it easier to handle iterables.
+		These projects can span from small deep dives into varius algorithms, such as how to tokenize
+		strings via a method called byte pair encoding (my golang implementation <a
+			href="https://github.com/JHelar/tokenizer">Tokenizer</a
+		>), or visual algorithms to simulate multiple bodies in a flock called
+		<a href="/boids">boids algorithm</a>.<br />Other projects can be more application based where
+		the latest is an application to split group costs evenly between members, where I take the role
+		as designer, frontend and backend developer, using technologies such as Golang, React,
+		Typescript and Expo (react-native) for more info see
+		<a href="https://github.com/JHelar/piggysplit">Piggysplit</a>.
 	</p>
 	<ul class="mt-6">
 		<li><a href="https://www.linkedin.com/in/john-larsson-8ba758b3/">LinkedIn</a></li>
@@ -36,6 +40,26 @@
 	<h2 class="text-2xl font-semibold">Work</h2>
 	<h3 class="mt-6">Some of my past work experiences.</h3>
 	<ol class="list-decimal ml-8 mt-6">
+		<li>
+			Senior fullstack developer, Bright Energy AB a Swedish white label SaaS product for the energy
+			and smart home sector in the Nordics.
+			<ul class="list-disc ml-8 mt-2">
+				<li>
+					Transformed the React Native based white label application to be accessible and compliant
+					with the WCAG AA criteria. Complete overhaul of the design library and implementation in
+					the application.
+				</li>
+				<li>
+					Implemented support for multiple realtime meters using the new architecutre for IoT
+					integrations
+				</li>
+				<li>Reworked the backend architecural platform for their IoT integration</li>
+				<li>
+					Reworked the application platform to be truly white label, enabling a quicker workflow for
+					developers and other parts of the organisation to switch between organisation
+				</li>
+			</ul>
+		</li>
 		<li>
 			Senior fullstack developer, consultant at <a href="skry.se">Skry</a>
 		</li>
@@ -65,6 +89,14 @@
 		professional work.
 	</p>
 	<ol class="list-decimal ml-8 mt-6">
+		<li>
+			<a href="https://github.com/JHelar/piggysplit">PiggySplit</a> is a fullstack application, for iOS
+			and Android. Helps groups split their costs when making trips or activities together, with a realtime
+			group interface and a transactional state ensuring costs are split evenly amongst all members when
+			the activity is over. Written using Expo (React native), Typescript in the frontend and Golang
+			in the backend with a simple SSE streaming interface for realtime data transfer from the backend
+			to the application. Design is made by me using Figma.
+		</li>
 		<li>
 			<a href="https://github.com/JHelar/iterup">iterup</a>
 			is a TypeScript async iterator utility library that provides lazy evaluation for efficient data
@@ -98,7 +130,7 @@
 		</li>
 	</ol>
 	<p class="mt-6">
-		Also cannot forget the recurring christmas project <a
+		Also cannot forget the recurring christmas project (and yearly dose of Rust) <a
 			href="https://github.com/JHelar/advent-of-code">Advent of Code</a
 		>!<br />
 		Check out other projects on my <a href="https://github.com/JHelar">GitHub</a> or other web
